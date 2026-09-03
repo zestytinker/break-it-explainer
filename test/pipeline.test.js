@@ -322,3 +322,9 @@ test('preview: fresh Bloom draft + Wikipedia-only verdicts apply cleanly', () =>
   const html = R.renderPage({ ...content, id: 'x', name: 'x', hook: 'x', playground: 'bloom', lib: 'bloom.js' });
   assert.match(html, /Facts checked against: Wikipedia: Bloom filter/);
 });
+
+test('judge prompt tells the model that a different figure for a different setting is unverified', () => {
+  const { JUDGE_SYSTEM } = require('../pipeline/verify');
+  assert.match(JUDGE_SYSTEM, /same fact under the same conditions/);
+  assert.match(JUDGE_SYSTEM, /different setting.*"unverified", not "contradicted"/);
+});

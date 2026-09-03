@@ -7,8 +7,9 @@ const { parseJson } = require('./llm');
 const JUDGE_SYSTEM = `You are a strict fact checker. You will get a list of claims and excerpts from trusted sources.
 For each claim decide:
 - "supported": a source states it, or states something that clearly implies it.
-- "contradicted": a source states something incompatible with it (wrong year, wrong person, wrong number).
-- "unverified": the sources do not address it. Do NOT use your own memory to mark a claim supported; only the sources count.
+- "contradicted": a source addresses the same fact under the same conditions and states something incompatible (wrong year, wrong person, wrong number).
+- "unverified": the sources do not address it. A different figure for a different setting, example, or parameter is "unverified", not "contradicted".
+Do NOT use your own memory to mark a claim supported; only the sources count.
 Quote the shortest source phrase (under 15 words) that decided it. Output a single JSON object, no prose.`;
 
 // Split into sentences without breaking on initials ("Burton H. Bloom"), common abbreviations, or decimals.
@@ -155,4 +156,4 @@ ${changes.length ? changes.map(c => `- ${c.id}: ${c.action}${c.step ? ` in ${c.s
 `;
 }
 
-module.exports = { judge, apply, report, soften, cutSentence, resolve, judgePrompt, splitSentences };
+module.exports = { judge, apply, report, soften, cutSentence, resolve, judgePrompt, splitSentences, JUDGE_SYSTEM };
