@@ -1,0 +1,117 @@
+{
+  "source": "Wikipedia: Bloom filter (full article text)",
+  "verdicts": [
+    {
+      "id": "c1",
+      "verdict": "supported",
+      "source": "Wikipedia: Bloom filter",
+      "quote": "conceived by Burton Howard Bloom in 1970",
+      "note": ""
+    },
+    {
+      "id": "c2",
+      "verdict": "unverified",
+      "source": "",
+      "quote": "",
+      "note": "employer not in the article text"
+    },
+    {
+      "id": "c3",
+      "verdict": "unverified",
+      "source": "",
+      "quote": "",
+      "note": "journal appears only in the citation list, which the extract does not include"
+    },
+    {
+      "id": "c4",
+      "verdict": "unverified",
+      "source": "",
+      "quote": "",
+      "note": "title appears only in the citation list, which the extract does not include"
+    },
+    {
+      "id": "c5",
+      "verdict": "supported",
+      "source": "Wikipedia: Bloom filter",
+      "quote": "example of a hyphenation algorithm for a dictionary of 500,000 words",
+      "note": ""
+    },
+    {
+      "id": "c6",
+      "verdict": "supported",
+      "source": "Wikipedia: Bloom filter",
+      "quote": "90% follow simple hyphenation rules",
+      "note": ""
+    },
+    {
+      "id": "c7",
+      "verdict": "supported",
+      "source": "Wikipedia: Bloom filter",
+      "quote": "remaining 10% require expensive disk accesses",
+      "note": "implied: 10% of 500,000 is 50,000"
+    },
+    {
+      "id": "c8",
+      "verdict": "unverified",
+      "source": "",
+      "quote": "",
+      "note": "article gives 87% for an 18%-size hash area, a different setting; the 84% figure is not stated"
+    },
+    {
+      "id": "c9",
+      "verdict": "unverified",
+      "source": "",
+      "quote": "",
+      "note": "adoption timeline not stated; the Broder and Mitzenmacher survey in the refs would settle it, but it is a PDF"
+    },
+    {
+      "id": "c10",
+      "verdict": "supported",
+      "source": "Wikipedia: Bloom filter",
+      "quote": "addressed with the counting Bloom filter variant",
+      "note": ""
+    },
+    {
+      "id": "c11",
+      "verdict": "supported",
+      "source": "Wikipedia: Bloom filter",
+      "quote": "cuckoo filters can be parameterized to offer nearly optimal space guarantees",
+      "note": "also: Fan et al. (2014) allow deletions but use less space than a static Bloom filter"
+    },
+    {
+      "id": "c12",
+      "verdict": "supported",
+      "source": "Wikipedia: Bloom filter",
+      "quote": "Apache Cassandra, ScyllaDB and PostgreSQL use Bloom filters to reduce the disk lookups",
+      "note": "the per-file (SSTable) granularity is not stated; Cassandra docs would settle that"
+    },
+    {
+      "id": "c13",
+      "verdict": "unverified",
+      "source": "",
+      "quote": "",
+      "note": "RocksDB and LevelDB are not mentioned"
+    },
+    {
+      "id": "c14",
+      "verdict": "supported",
+      "source": "Wikipedia: Bloom filter",
+      "quote": "Google Chrome web browser previously used a Bloom filter to identify malicious URLs",
+      "note": "the product name Safe Browsing is not stated"
+    },
+    {
+      "id": "c15",
+      "verdict": "supported",
+      "source": "Wikipedia: Bloom filter",
+      "quote": "Akamai Technologies, a content delivery provider, use Bloom filters to prevent one-hit-wonders",
+      "note": ""
+    },
+    {
+      "id": "c16",
+      "verdict": "supported",
+      "source": "Wikipedia: Bloom filter",
+      "quote": "Elements can be added to the set, but not removed",
+      "note": ""
+    }
+  ]
+}

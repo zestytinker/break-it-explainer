@@ -248,3 +248,77 @@ test('overlap judge supports claims whose anchors appear in a source and never c
   assert.equal(v[0].verdict, 'supported'); assert.equal(v[0].source, 'S');
   assert.equal(v[1].verdict, 'unverified');
 });
+
+// ---------- fixes found by the manual Bloom preview ----------
+test('splitSentences keeps initials and abbreviations together but splits after years', () => {
+  assert.deepEqual(V.splitSentences('Burton H. Bloom of Computer Usage Co. wrote it. It was 1970. Done.'),
+    ['Burton H. Bloom of Computer Usage Co. wrote it.', 'It was 1970.', 'Done.']);
+});
+
+test('a sentence is hedged at most once even when several claims point at it', () => {
+  const d = draftFixture();
+  d.steps.origin.intro = 'In 1970, Burton H. Bloom published a paper in Communications of the ACM.';
+  d.claims = [
+    { id: 'a', step: 'origin.intro', text: 'Bloom published in 1970' },
+    { id: 'b', step: 'origin.intro', text: 'Communications of the ACM' },
+    { id: 'c', step: 'origin.intro', text: 'Burton H. Bloom' }
+  ];
+  const { content } = V.apply(d, [{ id: 'a', verdict: 'unverified' }, { id: 'b', verdict: 'unverified' }, { id: 'c', verdict: 'unverified' }]);
+  assert.equal(content.steps.origin.intro, 'Around 1970, Burton H. Bloom published a paper in Communications of the ACM.');
+});
+
+test('softening keeps proper nouns capitalised and lowercases only function words', () => {
+  assert.equal(V.soften('The idea spread.'), 'Reportedly, the idea spread.');
+  assert.equal(V.soften('Cassandra keeps one per file.'), 'Reportedly, Cassandra keeps one per file.');
+  assert.equal(V.soften('In 1994 it was standardised.'), 'Around 1994 it was standardised.');
+  assert.equal(V.soften(V.soften('The idea spread.')), 'Reportedly, the idea spread.', 'idempotent');
+});
+
+// ---------- PDF references ----------
+test('reference extracts text from a real PDF', async () => {
+  const buf = fs.readFileSync(path.join(__dirname, 'fixtures', 'sample-ref.pdf'));
+  const fetchImpl = async () => ({ ok: true, headers: new Map([['content-type', 'application/pdf']]), arrayBuffer: async () => buf });
+  const r = await S.reference('https://example.org/survey.pdf', { fetchImpl, minChars: 50 });
+  assert.ok(r, 'reference returned');
+  assert.match(r.text, /only in recent years have they become popular in the networking literature/);
+  assert.equal(r.name, 'Reference: https://example.org/survey.pdf');
+});
+
+test('reference treats a .pdf URL as PDF even without a content-type, via injected parser', async () => {
+  const fetchImpl = async () => ({ ok: true, headers: new Map(), arrayBuffer: async () => new ArrayBuffer(8) });
+  const pdfText = async () => 'x '.repeat(400) + 'consistent hashing was introduced in 1997';
+  const r = await S.reference('https://example.org/paper.pdf', { fetchImpl, pdfText });
+  assert.ok(r && /1997/.test(r.text));
+});
+
+test('gather follows paper-like Wikipedia references, skips archive.org, caps the count', async () => {
+  const seen = [];
+  const fetchImpl = async url => {
+    seen.push(url);
+    if (/wikipedia/.test(url)) return { ok: true, json: async () => ({ query: { pages: [{ title: 'X', extract: 'wiki', extlinks: [
+      { url: 'https://web.archive.org/web/2020/https://a.edu/p.pdf' }, { url: 'https://a.edu/p.pdf' }, { url: 'https://doi.org/10.1/x' }, { url: 'https://example.com/blog' } ] }] } }) };
+    return { ok: true, headers: new Map([['content-type', 'text/html']]), text: async () => '<p>' + 'ref text '.repeat(100) + '</p>', arrayBuffer: async () => new ArrayBuffer(8) };
+  };
+  const pdfText = async () => 'pdf text '.repeat(100);
+  const srcs = await S.gather({ name: 'X', wikipedia: 'X' }, { fetchImpl, pdfText });
+  assert.deepEqual(srcs.map(s => s.name), ['Wikipedia: X', 'Reference: https://a.edu/p.pdf', 'Reference: https://doi.org/10.1/x']);
+  assert.ok(!seen.some(u => /web\.archive\.org|example\.com\/blog/.test(u)));
+});
+
+// ---------- the manual no-key preview, frozen as a regression ----------
+// Draft written by Claude from the pipeline prompt; verdicts judged by Claude against the full Wikipedia article.
+test('preview: fresh Bloom draft + Wikipedia-only verdicts apply cleanly', () => {
+  const d = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'bloom-filter.generated.draft.json'), 'utf8'));
+  const v = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'bloom-filter.wikipedia.verdicts.json'), 'utf8')).verdicts;
+  assert.deepEqual(validateDraft(d), []);
+  const { content, changes } = V.apply(d, v);
+  assert.deepEqual(content.verification.counts, { supported: 10, softened: 6, cut: 0, total: 16 });
+  const intro = content.steps.origin.intro;
+  assert.equal((intro.match(/Reportedly/g) || []).length, 0, 'year softener used, not a prefix');
+  assert.match(intro, /^Around 1970, <b>Burton H\. Bloom<\/b>/);
+  assert.doesNotMatch(intro, /Reportedly, Reportedly/);
+  assert.match(content.steps.uses.items[0].text, /^Apache Cassandra keeps .* Reportedly, RocksDB/);
+  // page renders from it
+  const html = R.renderPage({ ...content, id: 'x', name: 'x', hook: 'x', playground: 'bloom', lib: 'bloom.js' });
+  assert.match(html, /Facts checked against: Wikipedia: Bloom filter/);
+});

@@ -51,15 +51,28 @@ async function mdn(query, { fetchImpl = globalThis.fetch } = {}) {
   return { name: `MDN: ${doc.title}`, url: `https://developer.mozilla.org${doc.mdn_url}`, text };
 }
 
-// Fetch an open-access reference (e.g. the original paper) as text, if it is HTML or plain text.
-async function reference(url, { fetchImpl = globalThis.fetch, maxChars = 60000 } = {}) {
+// Extract text from a PDF buffer. Injectable so tests need no real parser.
+async function defaultPdfText(buffer) {
+  const { PDFParse } = require('pdf-parse');
+  const parser = new PDFParse({ data: buffer });
+  try { return (await parser.getText()).text || ''; } finally { if (parser.destroy) await parser.destroy(); }
+}
+
+// Fetch an open-access reference (the original paper, official docs) as text.
+// Handles HTML, plain text, and PDF (by content-type or .pdf in the URL).
+async function reference(url, { fetchImpl = globalThis.fetch, maxChars = 60000, minChars = 500, pdfText = defaultPdfText } = {}) {
   try {
     const res = await fetchImpl(url, { headers: { 'user-agent': UA } });
     if (!res.ok) return null;
     const type = res.headers.get('content-type') || '';
-    if (!/text\/html|text\/plain/.test(type)) return null;
-    const text = cleanText(await res.text()).slice(0, maxChars);
-    return text.length > 500 ? { name: `Reference: ${url}`, url, text } : null;
+    let raw;
+    if (/application\/pdf/.test(type) || /\.pdf(\?|$)/i.test(url)) {
+      raw = await pdfText(Buffer.from(await res.arrayBuffer()));
+    } else if (/text\/html|text\/plain/.test(type)) {
+      raw = await res.text();
+    } else return null;
+    const text = cleanText(raw).slice(0, maxChars);
+    return text.length >= minChars ? { name: `Reference: ${url}`, url, text } : null;
   } catch { return null; }
 }
 
@@ -70,6 +83,11 @@ async function gather(concept, opts = {}) {
   if (wiki) sources.push(wiki);
   if (concept.mdn) { const m = await mdn(concept.mdn, opts); if (m) sources.push(m); }
   for (const url of concept.references || []) { const r = await reference(url, opts); if (r) sources.push(r); }
+  // Also read Wikipedia's own references when they look like papers or official docs (open-access only; PDFs handled).
+  if (wiki && !opts.skipWikiRefs) {
+    const picked = wiki.refs.filter(u => /\.pdf(\?|$)|doi\.org|acm\.org|arxiv\.org|\.edu\/|docs\.|\/wiki\//i.test(u) && !/web\.archive\.org/.test(u)).slice(0, opts.maxWikiRefs || 4);
+    for (const url of picked) { const r = await reference(url, opts); if (r) sources.push(r); }
+  }
   return sources;
 }
 

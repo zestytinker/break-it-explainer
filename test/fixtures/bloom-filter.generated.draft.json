@@ -1,0 +1,78 @@
+{
+  "pageTitle": "Bloom filters, explained with a guest list",
+  "title": "The doorman who only remembers hints",
+  "subtitle": "A hands-on tour of Bloom filters, in six short steps.",
+  "steps": {
+    "why": {
+      "paras": [
+        "Say you run a mail server and you keep a list of <b>known spam addresses</b>. Millions of them. Every incoming message needs one question answered fast: is this sender on the list? Storing the whole list in memory on every server is expensive, and checking it on disk is slow.",
+        "Here's the trick: you don't need the list. You need something that says <b>\"definitely not on it\"</b> most of the time, so you can skip the expensive check, and \"maybe on it\" the rest of the time, when you go and look properly.",
+        "Picture a doorman with a terrible memory who instead remembers three hints about every guest: hat, accent, shoe colour. A stranger with the same hat, accent and shoes gets waved through. Anyone missing a hint is turned away with total confidence. That doorman is a Bloom filter."
+      ],
+      "next": "Show me the doorman"
+    },
+    "how": {
+      "paras": [
+        "The doorman's memory is a row of switches, all off at the start. To add a guest, scramble their name three different ways; each scramble picks one switch, and you flip it on. To check a name, scramble it the same three ways and look: if any switch is off, that name was never added.",
+        "Add a few names and watch switches flip. Then check a name you never added and see the doorman reject it on the spot."
+      ],
+      "next": "Now let me break it"
+    },
+    "break": {
+      "paras": [
+        "Here's the catch. Switches never turn off, and different names can share switches. Fill the row with enough guests and a stranger's three switches will all happen to be on. The doorman says \"maybe\" about someone who was never invited. That's a false positive, and it's the price of the memory savings.",
+        "Play with the row length and the number of scrambles per name. Longer rows and more scrambles push false positives down, until the row gets crowded and they climb again."
+      ],
+      "next": "Who came up with this?"
+    },
+    "origin": {
+      "intro": "In 1970, <b>Burton H. Bloom</b>, working at Computer Usage Company in Massachusetts, published a short paper in <i>Communications of the ACM</i> called \"Space/Time Trade-offs in Hash Coding with Allowable Errors\". The whole idea fits in a few pages.",
+      "timeline": [
+        { "label": "The problem", "text": "Memory was tiny and disks were slow. Bloom's example was a program that hyphenates English words: about 90% follow simple rules, but the rest, around 50,000 words, need a dictionary that only fits on disk." },
+        { "label": "The naive fix", "text": "Look every word up on disk, or try to squeeze a full hash table of the exceptions into memory. The first is slow; the second doesn't fit." },
+        { "label": "The insight", "text": "Store a blurry version of the exception list in memory and accept a small rate of wrong answers. Bloom showed that allowing a few false positives cut disk lookups by roughly 84% in his example." },
+        { "label": "Since then", "text": "The idea stayed a niche database trick for decades, then spread through networking and web systems in the late 1990s and 2000s. Relatives followed: counting Bloom filters that can delete, and cuckoo filters that pack tighter." }
+      ],
+      "takeaway": "Bloom traded a little correctness for a lot of memory. Every use since has been a version of that same trade.",
+      "next": "Where is this used today?"
+    },
+    "uses": {
+      "intro": "Anywhere a fast \"definitely not\" lets a system skip expensive work.",
+      "items": [
+        { "title": "Databases with many files on disk", "text": "Apache Cassandra keeps a Bloom filter per data file so a lookup can skip files that definitely don't hold the key. RocksDB and LevelDB-style stores do the same." },
+        { "title": "Web browsers and URL blocklists", "text": "Early versions of Google Chrome used a Bloom filter to check URLs against its Safe Browsing list before asking the server." },
+        { "title": "Content delivery networks", "text": "Akamai uses Bloom filters to avoid caching objects that are requested only once, so one-hit wonders don't fill the cache." }
+      ],
+      "caveat": "What it can't do: it never says a definite \"yes\", so you still need the real list for the maybes, and a standard Bloom filter can't remove an item, because switching a bit off could erase someone else's hint.",
+      "next": "Want to read more?"
+    },
+    "reads": {
+      "intro": "If the doorman got you curious, here's where to go next. Source first, then friendlier explainers.",
+      "items": [
+        { "title": "Burton H. Bloom, the original 1970 paper", "url": "https://dl.acm.org/doi/10.1145/362686.362692", "note": "Short and readable. The hyphenation example is in it." },
+        { "title": "Broder and Mitzenmacher, Network Applications of Bloom Filters", "url": "https://www.eecs.harvard.edu/~michaelm/postscripts/im2005b.pdf", "note": "The survey that brought Bloom filters to networking." },
+        { "title": "Wikipedia, Bloom filter", "url": "https://en.wikipedia.org/wiki/Bloom_filter", "note": "The false-positive formula, optimal hash count, and variants." },
+        { "title": "Apache Cassandra docs, storage engine", "url": "https://cassandra.apache.org/doc/latest/cassandra/architecture/storage-engine.html", "note": "A production system explaining why it keeps a Bloom filter per file." },
+        { "title": "Jason Davies, interactive Bloom filter", "url": "https://www.jasondavies.com/bloomfilter/", "note": "The classic visualization with real hash math on show." }
+      ]
+    }
+  },
+  "claims": [
+    { "id": "c1", "step": "origin.intro", "text": "Burton H. Bloom published the Bloom filter in 1970." },
+    { "id": "c2", "step": "origin.intro", "text": "Bloom worked at Computer Usage Company in Massachusetts." },
+    { "id": "c3", "step": "origin.intro", "text": "The paper appeared in Communications of the ACM." },
+    { "id": "c4", "step": "origin.intro", "text": "The paper is titled Space/Time Trade-offs in Hash Coding with Allowable Errors." },
+    { "id": "c5", "step": "origin.timeline[0]", "text": "Bloom's motivating example was a hyphenation program for English words." },
+    { "id": "c6", "step": "origin.timeline[0]", "text": "In Bloom's example about 90% of words could be hyphenated by simple rules." },
+    { "id": "c7", "step": "origin.timeline[0]", "text": "In Bloom's example around 50,000 words needed a dictionary lookup." },
+    { "id": "c8", "step": "origin.timeline[2]", "text": "Allowing false positives cut disk lookups by roughly 84% in Bloom's example." },
+    { "id": "c9", "step": "origin.timeline[3]", "text": "Bloom filters became widely used in networking and web systems in the late 1990s and 2000s." },
+    { "id": "c10", "step": "origin.timeline[3]", "text": "Counting Bloom filters support deletion." },
+    { "id": "c11", "step": "origin.timeline[3]", "text": "Cuckoo filters are a later alternative that uses less space." },
+    { "id": "c12", "step": "uses.items[0]", "text": "Apache Cassandra keeps a Bloom filter per SSTable to skip files that do not contain a key." },
+    { "id": "c13", "step": "uses.items[0]", "text": "RocksDB and LevelDB-style stores use Bloom filters per file." },
+    { "id": "c14", "step": "uses.items[1]", "text": "Early versions of Google Chrome used a Bloom filter for Safe Browsing URL checks." },
+    { "id": "c15", "step": "uses.items[2]", "text": "Akamai uses Bloom filters to avoid caching one-hit wonders." },
+    { "id": "c16", "step": "uses.caveat", "text": "A standard Bloom filter cannot delete an item." }
+  ]
+}

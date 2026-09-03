@@ -9,5 +9,10 @@
     "generate": "node pipeline/run.js",
     "coverage": "node pipeline/render.js && node --test --experimental-test-coverage --test-coverage-exclude='test/**' --test-coverage-exclude='node_modules/**'"
   },
-  "devDependencies": { "jsdom": "^30.0.1" }
+  "devDependencies": {
+    "jsdom": "^30.0.1"
+  },
+  "dependencies": {
+    "pdf-parse": "^2.4.5"
+  }
 }

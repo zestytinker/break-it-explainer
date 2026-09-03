@@ -6,7 +6,13 @@
     "wikipedia": "Bloom filter",
     "playground": "bloom",
     "lib": "bloom.js",
-    "published": true
+    "published": true,
+    "references": [
+      "https://dl.acm.org/doi/10.1145/362686.362692",
+      "https://cassandra.apache.org/doc/latest/cassandra/architecture/storage-engine.html",
+      "https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter",
+      "https://www.eecs.harvard.edu/~michaelm/postscripts/im2005b.pdf"
+    ]
   },
   {
     "id": "consistent-hashing",
@@ -15,7 +21,12 @@
     "wikipedia": "Consistent hashing",
     "playground": "ring",
     "lib": "hashring.js",
-    "published": true
+    "published": true,
+    "references": [
+      "https://dl.acm.org/doi/10.1145/258533.258660",
+      "https://web.stanford.edu/class/cs168/l/l1.pdf",
+      "https://www.akamai.com/company/company-history"
+    ]
   },
   {
     "id": "token-bucket",

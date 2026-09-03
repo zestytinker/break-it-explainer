@@ -18,7 +18,7 @@ Live: https://zestytinker.github.io/break-it-explainer/ (GitHub Pages, deploys f
 
 ## Adding or regenerating a concept
 
-1. Add it to `concepts.json` with its Wikipedia title; add `references` URLs (original paper, official docs) when known.
+1. Add it to `concepts.json` with its Wikipedia title; add `references` URLs (original paper, official docs) when known. Wikipedia alone rarely covers employer, journal, title or specific products, so references matter.
 2. `ANTHROPIC_API_KEY=... npm run generate -- <id>` (`--dry` for the offline fixture flow; `--force` to overwrite hand-verified content).
 3. Read `reports/<id>.md`. Unverified claims were hedged in the text, contradicted ones cut.
 4. Flip `published: true`, `npm test`, commit JSON + report + HTML, push.

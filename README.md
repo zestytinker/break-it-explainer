@@ -36,7 +36,7 @@ Concepts are a fixed menu, so generation happens once, offline, and the site sta
 
 Running the pipeline for real on a concept that already has hand-verified content writes `content/<id>.generated.json` next to it for comparison and leaves the page alone; add `--force` to replace it.
 
-Trusted sources today: Wikipedia (article text plus its external references, fetched when open access) and MDN for web-platform topics. The judge is told to use only those excerpts, never its own memory.
+Trusted sources today: the Wikipedia article, up to four of its own paper-like references (DOIs, PDFs, .edu and docs pages; PDFs are text-extracted), any `references` URLs you list in `concepts.json`, and MDN for web-platform topics. The judge is told to use only those excerpts, never its own memory. In a manual preview on the Bloom filter page, Wikipedia alone supported 10 of 16 claims; the paper and the Cassandra docs, now listed as references, cover most of the rest.
 
 ## Develop
 

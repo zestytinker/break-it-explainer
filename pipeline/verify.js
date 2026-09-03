@@ -11,6 +11,20 @@ For each claim decide:
 - "unverified": the sources do not address it. Do NOT use your own memory to mark a claim supported; only the sources count.
 Quote the shortest source phrase (under 15 words) that decided it. Output a single JSON object, no prose.`;
 
+// Split into sentences without breaking on initials ("Burton H. Bloom"), common abbreviations, or decimals.
+const INITIAL = /\b[A-Z]\.$/;
+const ABBREV = /\b(?:Mr|Mrs|Ms|Dr|Prof|St|Jr|Sr|Co|Inc|Ltd|Corp|vs|etc|e\.g|i\.e|no|vol|pp|fig|approx)\.$/i;
+function splitSentences(text) {
+  const parts = text.split(/(?<=[.!?])\s+/);
+  const out = [];
+  for (const p of parts) {
+    const prev = out[out.length - 1];
+    if (prev !== undefined && (INITIAL.test(prev) || ABBREV.test(prev))) out[out.length - 1] = prev + ' ' + p;
+    else out.push(p);
+  }
+  return out;
+}
+
 function chunk(text, size) {
   const out = [];
   for (let i = 0; i < text.length; i += size) out.push(text.slice(i, i + size));
@@ -61,19 +75,23 @@ function resolve(draft, stepPath) {
 const SOFTENERS = [
   [/\b(is|are) used (by|in)\b/i, (m, a, b) => `${a} reported to be used ${b}`],
   [/\b(uses|use)\b/i, (m, a) => (a === 'uses' ? 'is said to use' : 'are said to use')],
-  [/\bin (\d{4})\b/, 'around $1'],
+  [/\b(in|In) (\d{4})\b/, (m, a, y) => (a === 'In' ? 'Around ' : 'around ') + y],
   [/\babout (\d+)/i, 'roughly $1'],
 ];
 
-// Insert a hedge into a sentence that contains the claim, without deleting it.
+const HEDGED = /\b(reportedly|is said to|are said to|reported to be|around \d{4}|roughly \d)/i;
+
+// Insert a hedge into a sentence that contains the claim, without deleting it. Idempotent.
 function soften(sentence) {
+  if (HEDGED.test(sentence)) return sentence;
   for (const [re, rep] of SOFTENERS) if (re.test(sentence)) return sentence.replace(re, rep);
-  return sentence.replace(/^(\s*(?:<b>)?)/, '$1' + 'Reportedly, ');
+  const FUNCTION_WORD = /^(The|A|An|It|This|These|Those|In|On|At|By|For|With|Most|Many|Some|Its|Their|There|Each|Every)\b/;
+  return sentence.replace(/^(\s*(?:<b>)?)(\S+)/, (m, pre, word) => pre + 'Reportedly, ' + (FUNCTION_WORD.test(word) ? word[0].toLowerCase() + word.slice(1) : word));
 }
 
 // Remove the sentence that carries the claim; if it was the whole passage, replace with a neutral line.
 function cutSentence(passage, claimText) {
-  const sentences = passage.split(/(?<=[.!?])\s+/);
+  const sentences = splitSentences(passage);
   const words = claimText.toLowerCase().split(/\W+/).filter(w => w.length > 3);
   const score = s => words.filter(w => s.toLowerCase().includes(w)).length;
   let best = 0, bi = -1;
@@ -94,7 +112,7 @@ function apply(draft, verdicts) {
     if (v.verdict === 'contradicted') { ref.set(cutSentence(before, claim.text)); changes.push({ id: v.id, action: 'cut', step: claim.step, note: v.note }); }
     else {
       // soften only the sentence that carries the claim
-      const sentences = before.split(/(?<=[.!?])\s+/);
+      const sentences = splitSentences(before);
       const words = claim.text.toLowerCase().split(/\W+/).filter(w => w.length > 3);
       let bi = 0, best = -1;
       sentences.forEach((s, i) => { const sc = words.filter(w => s.toLowerCase().includes(w)).length; if (sc > best) { best = sc; bi = i; } });
@@ -137,4 +155,4 @@ ${changes.length ? changes.map(c => `- ${c.id}: ${c.action}${c.step ? ` in ${c.s
 `;
 }
 
-module.exports = { judge, apply, report, soften, cutSentence, resolve, judgePrompt };
+module.exports = { judge, apply, report, soften, cutSentence, resolve, judgePrompt, splitSentences };
