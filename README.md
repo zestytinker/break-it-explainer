@@ -32,7 +32,9 @@ Concepts are a fixed menu, so generation happens once, offline, and the site sta
 3. Read `reports/<id>.md`. Every factual claim is listed as supported (with the source phrase), unverified (softened in the text), or contradicted (cut from the text).
 4. Set `"published": true` and `npm run build`. Commit the JSON, the report and the HTML together.
 
-`npm run generate -- <id> --dry` runs the whole flow against fixtures with no network, which is how the pipeline is tested.
+`npm run generate -- <id> --dry` runs the whole flow against fixtures with no network and writes only `reports/<id>.dry.md`. For `bloom-filter` the fixtures are excerpts from the real sources the page was checked against by hand, so the dry report doubles as a regression check on the verifier (see `reports/bloom-filter.dry.md`; the offline judge is a keyword stand-in for Claude, so expect it to be stricter on wording).
+
+Running the pipeline for real on a concept that already has hand-verified content writes `content/<id>.generated.json` next to it for comparison and leaves the page alone; add `--force` to replace it.
 
 Trusted sources today: Wikipedia (article text plus its external references, fetched when open access) and MDN for web-platform topics. The judge is told to use only those excerpts, never its own memory.
 

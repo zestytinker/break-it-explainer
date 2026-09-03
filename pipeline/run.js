@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Generate and verify one concept from concepts.json.
 //   ANTHROPIC_API_KEY=... node pipeline/run.js token-bucket
-//   node pipeline/run.js token-bucket --dry   (uses fixtures, no network; for trying the flow)
+//   node pipeline/run.js bloom-filter --dry   (fixtures, no network; writes reports/<id>.dry.md only)
+//   node pipeline/run.js bloom-filter         (hand-verified content exists: writes content/<id>.generated.json + report, page untouched)
+//   node pipeline/run.js bloom-filter --force (replace the hand-verified content and re-render)
 const fs = require('fs');
 const path = require('path');
 const { createClient } = require('./llm');
@@ -13,7 +15,7 @@ const { renderAll } = require('./render');
 const ROOT = path.join(__dirname, '..');
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 
-async function run(id, { llm, gather = sources.gather, write = true } = {}) {
+async function run(id, { llm, gather = sources.gather, write = true, dry = false, force = false } = {}) {
   const concepts = JSON.parse(read('concepts.json'));
   const concept = concepts.find(c => c.id === id);
   if (!concept) throw new Error(`${id} is not in concepts.json. Add it to the menu first.`);
@@ -38,13 +40,25 @@ async function run(id, { llm, gather = sources.gather, write = true } = {}) {
   const final = { id: concept.id, name: concept.name, hook: concept.hook, ...content };
   if (write) {
     fs.mkdirSync(path.join(ROOT, 'reports'), { recursive: true });
-    fs.writeFileSync(path.join(ROOT, `content/${concept.id}.json`), JSON.stringify(final, null, 2) + '\n');
-    fs.writeFileSync(path.join(ROOT, `reports/${concept.id}.md`), md);
-    console.log(`[4/4] rendering`);
-    renderAll(concept.id);
-    console.log(`\nwrote content/${concept.id}.json, reports/${concept.id}.md, ${concept.id}-explainer.html`);
+    const contentPath = path.join(ROOT, `content/${concept.id}.json`);
+    const existing = fs.existsSync(contentPath) ? JSON.parse(fs.readFileSync(contentPath, 'utf8')) : null;
+    const manual = existing && existing.verification && existing.verification.method === 'manual';
+    const reportName = dry ? `reports/${concept.id}.dry.md` : `reports/${concept.id}.md`;
+    fs.writeFileSync(path.join(ROOT, reportName), md);
+    if (dry) {
+      console.log(`[4/4] dry run: wrote ${reportName} only (no content or page changed)`);
+    } else if (manual && !force) {
+      const alt = `content/${concept.id}.generated.json`;
+      fs.writeFileSync(path.join(ROOT, alt), JSON.stringify(final, null, 2) + '\n');
+      console.log(`[4/4] ${concept.id} has hand-verified content; wrote ${alt} and ${reportName} for comparison. Use --force to replace the page.`);
+    } else {
+      fs.writeFileSync(contentPath, JSON.stringify(final, null, 2) + '\n');
+      console.log(`[4/4] rendering`);
+      renderAll(concept.id);
+      console.log(`\nwrote content/${concept.id}.json, ${reportName}, ${concept.id}-explainer.html`);
+      console.log(`next: read ${reportName}, then set "published": true in concepts.json and run npm run build`);
+    }
     console.log(`verdicts: ${JSON.stringify(final.verification.counts)}`);
-    console.log(`next: read reports/${concept.id}.md, then set "published": true in concepts.json and run npm run build`);
   }
   return { content: final, verdicts, changes, report: md };
 }
@@ -53,13 +67,9 @@ if (require.main === module) {
   const id = process.argv[2];
   const dry = process.argv.includes('--dry');
   if (!id) { console.error('usage: node pipeline/run.js <concept-id> [--dry]'); process.exit(1); }
-  const opts = {};
-  if (dry) {
-    const fx = require('../test/fixtures/fake-llm');
-    opts.llm = fx.fakeLlm(); opts.gather = fx.fakeGather;
-  } else {
-    opts.llm = createClient();
-  }
+  const opts = { dry, force: process.argv.includes('--force') };
+  if (dry) Object.assign(opts, require('../test/fixtures/fake-llm').dryFor(id));
+  else opts.llm = createClient();
   run(id, opts).catch(e => { console.error(e.message); process.exit(1); });
 }
 

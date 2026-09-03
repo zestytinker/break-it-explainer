@@ -214,3 +214,37 @@ test('dry run produces content, a report and a page for token-bucket', async () 
   assert.equal(out.content.claims, undefined);
   await assert.rejects(run('not-a-concept', { llm: fakeLlm(), gather: fakeGather, write: false }), /not in concepts\.json/);
 });
+
+// ---------- Bloom filter regression run (offline) ----------
+test('dry run on the hand-verified Bloom page: memory-only claims come back unverified', async () => {
+  const { run } = require('../pipeline/run');
+  const { dryFor } = require('./fixtures/fake-llm');
+  const out = await run('bloom-filter', { ...dryFor('bloom-filter'), write: false });
+  const byId = Object.fromEntries(out.verdicts.map(v => [v.id, v.verdict]));
+  // facts that are in the 1970 paper / official docs excerpts
+  for (const id of ['c2', 'c3', 'c5', 'c6', 'c10', 'c11']) assert.equal(byId[id], 'supported', id);
+  // counting and cuckoo filters were never in the sources we read; the page should hedge them
+  assert.equal(byId.c8, 'unverified'); assert.equal(byId.c9, 'unverified');
+  assert.equal(out.content.verification.counts.cut, 0, 'nothing contradicted');
+  assert.match(out.content.steps.origin.timeline[3].text, /Reportedly|said to|around|reported to/);
+});
+
+test('dry run writes only the .dry report and never touches hand-verified content', async () => {
+  const { run } = require('../pipeline/run');
+  const { dryFor } = require('./fixtures/fake-llm');
+  const root = path.join(__dirname, '..');
+  const contentBefore = fs.readFileSync(path.join(root, 'content/bloom-filter.json'), 'utf8');
+  const pageBefore = fs.readFileSync(path.join(root, 'bloom-filter-explainer.html'), 'utf8');
+  await run('bloom-filter', { ...dryFor('bloom-filter'), write: true, dry: true });
+  assert.equal(fs.readFileSync(path.join(root, 'content/bloom-filter.json'), 'utf8'), contentBefore);
+  assert.equal(fs.readFileSync(path.join(root, 'bloom-filter-explainer.html'), 'utf8'), pageBefore);
+  assert.ok(fs.existsSync(path.join(root, 'reports/bloom-filter.dry.md')));
+});
+
+test('overlap judge supports claims whose anchors appear in a source and never contradicts', () => {
+  const { overlapVerdicts } = require('./fixtures/fake-llm');
+  const sources = [{ name: 'S', text: 'Burton H. Bloom published in 1970 in Communications of the ACM.' }];
+  const v = overlapVerdicts([{ id: 'a', text: 'Bloom published in 1970.' }, { id: 'b', text: 'Zebras invented Raft in 2013.' }], sources).verdicts;
+  assert.equal(v[0].verdict, 'supported'); assert.equal(v[0].source, 'S');
+  assert.equal(v[1].verdict, 'unverified');
+});
