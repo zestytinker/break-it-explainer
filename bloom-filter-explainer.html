@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bloom filters, explained with light bulbs</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --butter:#FFF3B0; --ink:#2B2340; --ink-soft:#5B5473;
+    --bulb-off:#EADFA7; --bulb-on:#FFB800; --bulb-glow:#FFD84D;
+    --berry:#E0387C; --mint:#2FB77C; --paper:#FFFBE6;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--butter);color:var(--ink);font-family:Fredoka,system-ui,sans-serif;line-height:1.45}
+  main{max-width:720px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:clamp(28px,5vw,40px);font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{color:var(--ink-soft);margin:0 0 28px;font-size:18px}
+  nav{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+  nav button{font:inherit;font-weight:600;background:transparent;border:2px solid var(--ink);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
+  nav button[aria-current="step"]{background:var(--ink);color:var(--butter)}
+  nav button:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
+  .step{display:none}.step.on{display:block}
+  .story{font-size:20px;margin:0 0 20px;max-width:60ch}
+  .story b{font-weight:600}
+  /* the strip */
+  .strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(28px,1fr));gap:8px;padding:18px;background:var(--paper);border-radius:20px;border:2px solid var(--ink);margin:0 0 16px}
+  .bulb{aspect-ratio:1;border-radius:50%;background:var(--bulb-off);border:2px solid var(--ink);position:relative;transition:background .25s,box-shadow .25s,transform .15s}
+  .bulb.on{background:var(--bulb-on);box-shadow:0 0 0 4px var(--bulb-glow),0 0 18px var(--bulb-glow)}
+  .bulb.ping{transform:scale(1.25)}
+  .bulb.miss{background:var(--paper);box-shadow:0 0 0 4px var(--berry)}
+  .bulb small{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--ink-soft)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:26px 0 12px}
+  input[type=text]{font:inherit;font-size:18px;padding:10px 14px;border:2px solid var(--ink);border-radius:14px;background:var(--paper);min-width:200px;flex:1}
+  .btn{font:inherit;font-weight:600;font-size:17px;padding:10px 18px;border-radius:14px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+  .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  .btn.primary{background:var(--bulb-on)}
+  .btn.danger{background:var(--berry);color:#fff}
+  .verdict{min-height:64px;font-size:22px;font-weight:600;padding:12px 16px;border-radius:16px;border:2px dashed var(--ink);margin:10px 0}
+  .verdict.yes{background:#FFE1EE;border-style:solid;border-color:var(--berry);color:var(--berry)}
+  .verdict.no{background:#DFF7EA;border-style:solid;border-color:var(--mint);color:#1F7A52}
+  .verdict.added{background:#FFF0BF;border-style:solid;border-color:var(--bulb-on)}
+  .stamp{display:inline-block;transform:rotate(-4deg);border:3px solid currentColor;padding:2px 10px;border-radius:8px;margin-right:8px}
+  .stats{display:flex;gap:18px;flex-wrap:wrap;font-size:16px;color:var(--ink-soft);margin:6px 0 18px}
+  .stats b{color:var(--ink);font-size:22px;display:block}
+  .sliders{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:12px 0 20px}
+  .sliders label{font-size:15px;color:var(--ink-soft)}
+  .sliders input{width:100%;accent-color:var(--berry)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;min-height:28px}
+  .chip{background:var(--ink);color:var(--butter);border-radius:999px;padding:2px 10px;font-size:14px}
+  .uses{display:grid;gap:14px;margin:18px 0}
+  .use{background:var(--paper);border:2px solid var(--ink);border-radius:18px;padding:14px 16px}
+  .use h3{margin:0 0 4px;font-size:19px}
+  .use p{margin:0;color:var(--ink-soft)}
+  .timeline{display:grid;gap:12px;margin:18px 0}
+  .tl{display:grid;grid-template-columns:120px 1fr;gap:14px;background:var(--paper);border:2px solid var(--ink);border-radius:18px;padding:14px 16px}
+  .tl-year{font-weight:600;color:var(--berry);font-size:17px}
+  .tl p{margin:0;color:var(--ink-soft)}
+  @media (max-width:520px){.tl{grid-template-columns:1fr;gap:4px}}
+  .reads{display:grid;gap:12px;margin:18px 0}
+  .read{display:block;text-decoration:none;color:inherit;background:var(--paper);border:2px solid var(--ink);border-radius:18px;padding:14px 16px;box-shadow:3px 3px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+  .read:hover,.read:focus-visible{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+  .read h3{margin:0 0 4px;font-size:18px;color:var(--berry)}
+  .read p{margin:0;color:var(--ink-soft)}
+  .caveat{border-left:6px solid var(--berry);padding:6px 14px;margin:20px 0;font-size:18px}
+  .next{display:flex;justify-content:flex-end;margin-top:22px}
+  footer{margin-top:40px;font-size:14px;color:var(--ink-soft)}
+  @media (max-width:520px){.sliders{grid-template-columns:1fr}.story{font-size:18px}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>The bouncer with a bad memory</h1>
+  <p class="sub">A hands-on tour of Bloom filters, in four short steps.</p>
+
+  <nav aria-label="Steps">
+    <button data-go="0" aria-current="step">1. Why</button>
+    <button data-go="1">2. How</button>
+    <button data-go="2">3. Break it</button>
+    <button data-go="3">4. Origin story</button>
+    <button data-go="4">5. Where it lives</button>
+    <button data-go="5">6. Read further</button>
+  </nav>
+
+  <!-- STEP 1 -->
+  <section class="step on" data-step="0">
+    <p class="story">Your browser wants to warn you before you open a <b>dodgy website</b>. There are millions of them, and the list changes every day.</p>
+    <p class="story">Downloading the whole list to your phone is too heavy. So early versions of Chrome kept a <b>tiny, blurry sketch</b> of the list instead. The sketch can never say "yes, definitely". It can only say <b>"definitely not"</b> or <b>"hmm, probably"</b>.</p>
+    <p class="story">That blurry sketch is a Bloom filter. It's like a bouncer who forgets faces but remembers a few odd details: "green jacket, tall, laughs loudly". Anyone matching all three gets a second look.</p>
+    <div class="next"><button class="btn primary" data-go="1">Show me the bouncer</button></div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step" data-step="1">
+    <p class="story">This strip of bulbs is all the memory the bouncer gets. Type a word and hit <b>Add</b>. The word gets scrambled three different ways, and each scramble points at one bulb. Those bulbs turn on.</p>
+    <p class="story">Then <b>Check</b> a word. If any of its three bulbs is dark, the bouncer is certain: never seen it. If all three glow, it's a "probably".</p>
+    <div class="playground" data-pg></div>
+    <div class="next"><button class="btn primary" data-go="2">Now let me break it</button></div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step" data-step="2">
+    <p class="story">Here's the catch. Bulbs never turn off, and different words can share bulbs. Fill the strip with strangers, then check a word you <b>never added</b>. Watch the bouncer wave it through anyway.</p>
+    <p class="story">Play with the sliders: more bulbs means fewer mistakes, and more scrambles per word helps too, until the strip gets crowded.</p>
+    <div class="playground" data-pg data-advanced></div>
+    <div class="next"><button class="btn primary" data-go="3">Who came up with this?</button></div>
+  </section>
+
+  <!-- STEP 4: origin -->
+  <section class="step" data-step="3">
+    <p class="story">It's 1970. <b>Burton H. Bloom</b>, a programmer at Computer Usage Company in Massachusetts, publishes a five-page paper in <i>Communications of the ACM</i>: "Space/Time Trade-offs in Hash Coding with Allowable Errors".</p>
+    <div class="timeline">
+      <div class="tl"><span class="tl-year">The problem</span><p>Computers had tiny fast memory (core) and big slow storage (disk). Bloom's example was a program that adds hyphens to words. About 90% of words follow simple rules. The awkward 50,000 or so need a dictionary lookup, and the dictionary only fits on disk.</p></div>
+      <div class="tl"><span class="tl-year">The naive fix</span><p>Look every word up on disk. Slow, because most trips to the disk come back empty-handed.</p></div>
+      <div class="tl"><span class="tl-year">The insight</span><p>Keep a blurry sketch of the awkward words in fast memory. A "definitely not" skips the disk. A "probably" pays for one disk trip, and the occasional false alarm just costs a wasted trip, not a wrong hyphen. Bloom worked out this cut disk visits by about 84%.</p></div>
+      <div class="tl"><span class="tl-year">Since then</span><p>The idea sat quietly for decades, then took off in the 1990s and 2000s when web caches, databases and networks all hit the same wall: too much data, too little fast memory. Cousins appeared too: counting Bloom filters (which can delete), cuckoo filters, and learned filters that use a small model as the first pass.</p></div>
+    </div>
+    <p class="story">Notice what Bloom actually traded: he gave up a little correctness to gain a lot of memory. That trade is the whole trick, and it's why the strip above breaks the way it does.</p>
+    <div class="next"><button class="btn primary" data-go="4">Where is this used today?</button></div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="step" data-step="4">
+    <p class="story">That "definitely not" answer is the whole point. It lets a system skip expensive work with total confidence, and only pay the full price on a "probably".</p>
+    <div class="uses">
+      <div class="use"><h3>Browsers and URL checks</h3><p>Is this site on the danger list? A dark bulb means "no, carry on" with no network call at all.</p></div>
+      <div class="use"><h3>Databases like Cassandra and RocksDB</h3><p>Is this key inside this file on disk? Each file can keep a Bloom filter so the database skips files that definitely don't have it.</p></div>
+      <div class="use"><h3>Caches and CDNs</h3><p>Has anyone asked for this item before? Only cache it the second time, so one-hit wonders don't clog the shelf.</p></div>
+    </div>
+    <div class="caveat">What it can't do: it never says a definite <b>yes</b>, and you can't remove a word once added, because turning off a bulb might erase someone else's clue.</div>
+    <div class="next"><button class="btn primary" data-go="5">Want to read more?</button></div>
+  </section>
+
+  <!-- STEP 6: further reading -->
+  <section class="step" data-step="5">
+    <p class="story">If the bulbs got you curious, here's where to go next. Start with the source, then work toward the friendlier explainers.</p>
+    <div class="reads">
+      <a class="read" href="https://dl.acm.org/doi/10.1145/362686.362692" target="_blank" rel="noopener"><h3>Burton H. Bloom, the original 1970 paper</h3><p>Five pages, surprisingly readable, and the hyphenation example is right there in it.</p></a>
+      <a class="read" href="https://www.eecs.harvard.edu/~michaelm/postscripts/im2005b.pdf" target="_blank" rel="noopener"><h3>Broder and Mitzenmacher, Network Applications of Bloom Filters: A Survey (2004)</h3><p>The paper that reintroduced Bloom filters to a new generation. Readable, and full of real systems.</p></a>
+      <a class="read" href="https://en.wikipedia.org/wiki/Bloom_filter" target="_blank" rel="noopener"><h3>Wikipedia, Bloom filter</h3><p>The full picture: the false-positive formula, the optimal number of hashes, and a long list of variants.</p></a>
+      <a class="read" href="https://www.jasondavies.com/bloomfilter/" target="_blank" rel="noopener"><h3>Jason Davies, interactive Bloom filter</h3><p>The classic visualization. Same idea as this page, with real hash math on show.</p></a>
+      <a class="read" href="https://yourbasic.org/algorithms/bloom-filter/" target="_blank" rel="noopener"><h3>YourBasic, Bloom filters explained</h3><p>A short, plain-language write-up with a small code example in Go.</p></a>
+    </div>
+    <div class="next"><button class="btn" data-go="1">Back to the playground</button></div>
+  </section>
+
+  <footer>Built as a prototype for explaining tech concepts to curious generalists.</footer>
+</main>
+
+<script data-inlined="bloom.js">
+// Pure Bloom filter logic, no DOM. Loaded by the explainer page and by the tests.
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.Bloom = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+
+  // FNV-1a with a seed twist and a final mix. Not crypto, just spread out.
+  function hash(str, seed, m) {
+    let h = 2166136261 ^ (seed * 0x9E3779B1);
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    return (h >>> 0) % m;
+  }
+
+  function normalize(w) { return String(w).toLowerCase().trim(); }
+
+  // Expected false positive rate after n inserts: (1 - e^(-kn/m))^k
+  function theoreticalFP(m, k, n) {
+    return n === 0 ? 0 : Math.pow(1 - Math.exp(-k * n / m), k);
+  }
+
+  function create(opts) {
+    const m = opts && opts.m != null ? opts.m : 24;
+    const k = opts && opts.k != null ? opts.k : 3;
+    if (!(m > 0) || !(k > 0)) throw new Error('m and k must be positive');
+    const bits = new Array(m).fill(0);
+    const added = new Set();
+
+    const positions = w => {
+      const key = normalize(w);
+      const p = [];
+      for (let i = 0; i < k; i++) p.push(hash(key, i + 1, m));
+      return p;
+    };
+
+    return {
+      m, k, bits, added,
+      positions,
+      add(w) {
+        const key = normalize(w);
+        if (!key) return false;
+        positions(key).forEach(i => { bits[i] = 1; });
+        added.add(key);
+        return true;
+      },
+      // returns { maybe, truly, positions, firstDark }
+      check(w) {
+        const key = normalize(w);
+        const pos = positions(key);
+        const maybe = pos.every(i => bits[i] === 1);
+        return { maybe, truly: added.has(key), positions: pos, firstDark: maybe ? -1 : pos.find(i => !bits[i]) };
+      },
+      litFraction() { return bits.filter(Boolean).length / m; },
+      fpRate() { return theoreticalFP(m, k, added.size); },
+      // build a fresh filter with new m/k from the same words
+      rebuild(next) {
+        const f = create({ m: (next && next.m) || m, k: (next && next.k) || k });
+        added.forEach(w => f.add(w));
+        return f;
+      }
+    };
+  }
+
+  return { create, hash, theoreticalFP, normalize };
+});
+</script>
+<script>
+(() => {
+  // ---------- state shared across both playgrounds ----------
+  // The Bloom filter itself lives in bloom.js (unit tested). This file only renders it.
+  let F = Bloom.create({ m: 24, k: 3 });
+  let falsePos = 0;
+  const reset = () => { F = Bloom.create({ m: F.m, k: F.k }); falsePos = 0; };
+
+  const strangers = ['pretzel','lantern','octopus','kazoo','tundra','velvet','marmot','sonnet','glacier','biscuit','quasar','pickle','harbor','mango','wombat','ledger','saffron','trellis','yodel','compass','fjord','nutmeg','zeppelin','gumbo','orchid','tinsel','walrus','cobalt','juniper','sprocket'];
+
+  const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pgs = [];
+  const renderAll = () => pgs.forEach(p => p.render());
+
+  // ---------- build one playground ----------
+  const build = (root, advanced) => {
+    root.innerHTML = `
+      ${advanced ? `
+      <div class="sliders">
+        <label>Bulbs on the strip: <b data-mv></b><input type="range" min="8" max="64" step="4" data-m></label>
+        <label>Scrambles per word: <b data-kv></b><input type="range" min="1" max="6" data-k></label>
+      </div>` : ''}
+      <div class="strip" data-strip></div>
+      <div class="chips" data-chips></div>
+      <div class="controls">
+        <input type="text" placeholder="type a word, e.g. pineapple" data-in aria-label="Word">
+        <button class="btn primary" data-add>Add</button>
+        <button class="btn" data-check>Check</button>
+        ${advanced ? `<button class="btn danger" data-fill>Fill with 8 strangers</button>` : ''}
+        <button class="btn" data-reset>Start over</button>
+      </div>
+      <div class="verdict" data-verdict>Nothing checked yet.</div>
+      <div class="stats">
+        <span><b data-n>0</b>words added</span>
+        <span><b data-lit>0%</b>bulbs glowing</span>
+        <span><b data-fp>0%</b>chance of a false "probably"</span>
+        ${advanced ? `<span><b data-caught>0</b>false alarms you caught</span>` : ''}
+      </div>`;
+
+    const q = s => root.querySelector(s);
+    const strip = q('[data-strip]'), input = q('[data-in]'), verdict = q('[data-verdict]');
+
+    const render = () => {
+      strip.innerHTML = '';
+      F.bits.forEach((b, i) => { const d = document.createElement('div'); d.className = 'bulb' + (b ? ' on' : ''); d.dataset.i = i; strip.appendChild(d); });
+      q('[data-chips]').innerHTML = [...F.added].map(w => `<span class="chip">${esc(w)}</span>`).join('');
+      q('[data-n]').textContent = F.added.size;
+      q('[data-lit]').textContent = Math.round(100 * F.litFraction()) + '%';
+      q('[data-fp]').textContent = Math.round(100 * F.fpRate()) + '%';
+      if (advanced) { q('[data-caught]').textContent = falsePos; q('[data-mv]').textContent = F.m; q('[data-kv]').textContent = F.k; q('[data-m]').value = F.m; q('[data-k]').value = F.k; }
+    };
+
+    const flash = (pos, cls) => pos.forEach((i, n) => { const b = strip.children[i]; if (!b) return; setTimeout(() => { b.classList.add(cls); setTimeout(() => b.classList.remove(cls), 500); }, n * 120); });
+
+    q('[data-add]').onclick = () => {
+      const w = input.value.trim(); if (!w) return;
+      const pos = F.positions(w); F.add(w); renderAll(); flash(pos, 'ping');
+      verdict.className = 'verdict added';
+      verdict.innerHTML = `Added <b>${esc(w)}</b>. It lit bulbs ${pos.map(p => p + 1).join(', ')}.`;
+      input.value = ''; input.focus();
+    };
+
+    q('[data-check]').onclick = () => {
+      const w = input.value.trim(); if (!w) return;
+      const r = F.check(w);
+      if (r.maybe && !r.truly) falsePos++;
+      renderAll();
+      flash(r.positions, r.maybe ? 'ping' : 'miss');
+      if (r.maybe) {
+        verdict.className = 'verdict yes';
+        verdict.innerHTML = `<span class="stamp">PROBABLY</span> all ${r.positions.length} bulbs for <b>${esc(w)}</b> are glowing.` + (r.truly ? '' : ` <br>But you never added it. That's a false alarm!`);
+      } else {
+        verdict.className = 'verdict no';
+        verdict.innerHTML = `<span class="stamp">DEFINITELY NOT</span> bulb ${r.firstDark + 1} is dark, so <b>${esc(w)}</b> was never added.`;
+      }
+      input.select();
+    };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') q('[data-check]').click(); });
+
+    q('[data-reset]').onclick = () => { reset(); renderAll(); verdict.className = 'verdict'; verdict.textContent = 'Strip cleared. Bouncer forgot everyone.'; };
+
+    if (advanced) {
+      q('[data-fill]').onclick = () => {
+        const pool = strangers.filter(s => !F.added.has(s)).sort(() => Math.random() - .5).slice(0, 8);
+        pool.forEach(w => F.add(w)); renderAll();
+        verdict.className = 'verdict added';
+        verdict.innerHTML = `Added ${pool.length} strangers. Now check a word you know you didn't add, like <b>${['banana','rocket','teapot','cactus'][Math.floor(Math.random()*4)]}</b>.`;
+      };
+      // changing m or k rebuilds the strip from the same added words
+      q('[data-m]').oninput = e => { F = F.rebuild({ m: +e.target.value }); renderAll(); };
+      q('[data-k]').oninput = e => { F = F.rebuild({ k: +e.target.value }); renderAll(); };
+    }
+
+    pgs.push({ render });
+    render();
+  };
+
+  document.querySelectorAll('[data-pg]').forEach(el => build(el, el.hasAttribute('data-advanced')));
+
+  // ---------- step navigation ----------
+  const go = n => {
+    document.querySelectorAll('.step').forEach(s => s.classList.toggle('on', s.dataset.step == n));
+    document.querySelectorAll('nav button').forEach(b => b.dataset.go == n ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    renderAll();
+  };
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+})();
+</script>
+</body>
+</html>

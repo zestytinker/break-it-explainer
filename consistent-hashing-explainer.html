@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consistent hashing, explained with a coat check</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --butter:#FFF3B0; --ink:#2B2340; --ink-soft:#5B5473;
+    --bulb-off:#EADFA7; --bulb-on:#FFB800; --bulb-glow:#FFD84D;
+    --berry:#E0387C; --mint:#2FB77C; --paper:#FFFBE6;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--butter);color:var(--ink);font-family:Fredoka,system-ui,sans-serif;line-height:1.45}
+  main{max-width:720px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:clamp(28px,5vw,40px);font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+  .sub{color:var(--ink-soft);margin:0 0 28px;font-size:18px}
+  nav{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+  nav button{font:inherit;font-weight:600;background:transparent;border:2px solid var(--ink);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
+  nav button[aria-current="step"]{background:var(--ink);color:var(--butter)}
+  nav button:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
+  .step{display:none}.step.on{display:block}
+  .story{font-size:20px;margin:0 0 20px;max-width:60ch}
+  .story b{font-weight:600}
+  /* the strip */
+  .strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(28px,1fr));gap:8px;padding:18px;background:var(--paper);border-radius:20px;border:2px solid var(--ink);margin:0 0 16px}
+  .bulb{aspect-ratio:1;border-radius:50%;background:var(--bulb-off);border:2px solid var(--ink);position:relative;transition:background .25s,box-shadow .25s,transform .15s}
+  .bulb.on{background:var(--bulb-on);box-shadow:0 0 0 4px var(--bulb-glow),0 0 18px var(--bulb-glow)}
+  .bulb.ping{transform:scale(1.25)}
+  .bulb.miss{background:var(--paper);box-shadow:0 0 0 4px var(--berry)}
+  .bulb small{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--ink-soft)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:26px 0 12px}
+  input[type=text]{font:inherit;font-size:18px;padding:10px 14px;border:2px solid var(--ink);border-radius:14px;background:var(--paper);min-width:200px;flex:1}
+  .btn{font:inherit;font-weight:600;font-size:17px;padding:10px 18px;border-radius:14px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+  .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  .btn.primary{background:var(--bulb-on)}
+  .btn.danger{background:var(--berry);color:#fff}
+  .verdict{min-height:64px;font-size:22px;font-weight:600;padding:12px 16px;border-radius:16px;border:2px dashed var(--ink);margin:10px 0}
+  .verdict.yes{background:#FFE1EE;border-style:solid;border-color:var(--berry);color:var(--berry)}
+  .verdict.no{background:#DFF7EA;border-style:solid;border-color:var(--mint);color:#1F7A52}
+  .verdict.added{background:#FFF0BF;border-style:solid;border-color:var(--bulb-on)}
+  .stamp{display:inline-block;transform:rotate(-4deg);border:3px solid currentColor;padding:2px 10px;border-radius:8px;margin-right:8px}
+  .stats{display:flex;gap:18px;flex-wrap:wrap;font-size:16px;color:var(--ink-soft);margin:6px 0 18px}
+  .stats b{color:var(--ink);font-size:22px;display:block}
+  .sliders{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:12px 0 20px}
+  .sliders label{font-size:15px;color:var(--ink-soft)}
+  .sliders input{width:100%;accent-color:var(--berry)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;min-height:28px}
+  .chip{background:var(--ink);color:var(--butter);border-radius:999px;padding:2px 10px;font-size:14px}
+  .uses{display:grid;gap:14px;margin:18px 0}
+  .use{background:var(--paper);border:2px solid var(--ink);border-radius:18px;padding:14px 16px}
+  .use h3{margin:0 0 4px;font-size:19px}
+  .use p{margin:0;color:var(--ink-soft)}
+  .timeline{display:grid;gap:12px;margin:18px 0}
+  .tl{display:grid;grid-template-columns:120px 1fr;gap:14px;background:var(--paper);border:2px solid var(--ink);border-radius:18px;padding:14px 16px}
+  .tl-year{font-weight:600;color:var(--berry);font-size:17px}
+  .tl p{margin:0;color:var(--ink-soft)}
+  @media (max-width:520px){.tl{grid-template-columns:1fr;gap:4px}}
+  .reads{display:grid;gap:12px;margin:18px 0}
+  .read{display:block;text-decoration:none;color:inherit;background:var(--paper);border:2px solid var(--ink);border-radius:18px;padding:14px 16px;box-shadow:3px 3px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+  .read:hover,.read:focus-visible{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+  .read h3{margin:0 0 4px;font-size:18px;color:var(--berry)}
+  .read p{margin:0;color:var(--ink-soft)}
+  .caveat{border-left:6px solid var(--berry);padding:6px 14px;margin:20px 0;font-size:18px}
+  .next{display:flex;justify-content:flex-end;margin-top:22px}
+  footer{margin-top:40px;font-size:14px;color:var(--ink-soft)}
+  @media (max-width:520px){.sliders{grid-template-columns:1fr}.story{font-size:18px}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  .ringwrap{display:grid;grid-template-columns:minmax(220px,320px) 1fr;gap:18px;align-items:start;background:var(--paper);border-radius:20px;border:2px solid var(--ink);padding:18px}
+  .ringwrap svg{width:100%;height:auto;display:block}
+  .bars{display:grid;gap:8px;align-self:stretch}
+  .bar{display:grid;grid-template-columns:70px 1fr 40px;gap:8px;align-items:center;font-size:15px}
+  .bar i{display:block;height:18px;border-radius:9px;border:2px solid var(--ink);background:var(--c);transition:width .3s}
+  .bar b{text-align:right}
+  .bars .empty{color:var(--ink-soft);font-size:15px}
+  .moved{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+  .moved div{border:2px dashed var(--ink);border-radius:16px;padding:10px 14px}
+  .moved b{display:block;font-size:26px}
+  .moved .ring b{color:#1F7A52}.moved .naive b{color:var(--berry)}
+  .moved small{color:var(--ink-soft)}
+  select{font:inherit;font-size:16px;padding:8px 10px;border:2px solid var(--ink);border-radius:12px;background:var(--paper)}
+  @media (max-width:560px){.ringwrap{grid-template-columns:1fr}.moved{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <h1>The coat check that never panics</h1>
+  <p class="sub">A hands-on tour of consistent hashing, in six short steps.</p>
+
+  <nav aria-label="Steps">
+    <button data-go="0" aria-current="step">1. Why</button>
+    <button data-go="1">2. How</button>
+    <button data-go="2">3. Break it</button>
+    <button data-go="3">4. Origin story</button>
+    <button data-go="4">5. Where it lives</button>
+    <button data-go="5">6. Read further</button>
+  </nav>
+
+  <!-- STEP 1 -->
+  <section class="step on" data-step="0">
+    <p class="story">You run a website with <b>four cache servers</b>. Every page has to live on exactly one of them, and everyone has to agree which one, without phoning around.</p>
+    <p class="story">The obvious rule: scramble the page's name into a number, divide by 4, and the remainder picks the server. Simple. It works right up until the day you add a <b>fifth server</b>. Now you divide by 5 instead, almost every remainder changes, and almost every page is suddenly on the wrong machine. Your caches are empty and your database is on fire.</p>
+    <p class="story">Picture a coat check with four counters. Someone opens a fifth, and every coat in the building has to be carried to a new counter. Consistent hashing is the trick that moves only <b>one counter's worth</b> of coats.</p>
+    <div class="next"><button class="btn primary" data-go="1">Show me the trick</button></div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step" data-step="1">
+    <p class="story">Draw a circle. Scramble each <b>server's name</b> into a spot on the circle and pin it there. Scramble each <b>key</b> the same way, drop it on the circle, and walk clockwise until you bump into a pin. That pin's server owns the key.</p>
+    <p class="story">Add a server and it only steals the keys sitting just before its new pin. Remove one and its keys slide to the next pin along. Nothing else moves. Try it.</p>
+    <div class="playground" data-pg></div>
+    <div class="next"><button class="btn primary" data-go="2">Now let me break it</button></div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step" data-step="2">
+    <p class="story">Here's the catch. With only a few pins, the gaps between them are lopsided, so one server ends up hoarding keys. And when you remove a server, its <b>entire</b> load dumps onto a single neighbor.</p>
+    <p class="story">The fix is charmingly dumb: give each server <b>many pins</b> instead of one (called virtual nodes). The gaps even out and a dead server's keys spread across everyone. Drag the slider and watch the bars level off.</p>
+    <div class="playground" data-pg data-advanced></div>
+    <div class="next"><button class="btn primary" data-go="3">Who came up with this?</button></div>
+  </section>
+
+  <!-- STEP 4: origin -->
+  <section class="step" data-step="3">
+    <p class="story">It's 1997. Six people at MIT's Laboratory for Computer Science, <b>David Karger, Eric Lehman, Tom Leighton, Rina Panigrahy, Matthew Levine and Daniel Lewin</b>, present a paper at the STOC conference: "Consistent Hashing and Random Trees: Distributed Caching Protocols for Relieving Hot Spots on the World Wide Web".</p>
+    <div class="timeline">
+      <div class="tl"><span class="tl-year">The problem</span><p>The early web had "hot spots": a page gets popular, one server gets crushed. The obvious cure is many caching servers spread across the internet. But the internet has no central manager, and servers come and go constantly, so any scheme that reshuffles everything on each change is dead on arrival.</p></div>
+      <div class="tl"><span class="tl-year">The naive fix</span><p>Hash modulo the number of servers. Fine for a fixed cluster, disastrous the moment the count changes.</p></div>
+      <div class="tl"><span class="tl-year">The insight</span><p>Map servers and keys onto the same circle, so adding or removing a server only touches its neighbors. The paper also shows that clients with slightly different views of which servers exist still mostly agree on where things live.</p></div>
+      <div class="tl"><span class="tl-year">Since then</span><p>Leighton and Lewin turned the idea into a company: Akamai, incorporated in August 1998, built its content delivery network on it. Chord (2001) used the ring for peer-to-peer lookup. Amazon's Dynamo paper (2007) brought it, plus virtual nodes, into databases, and most modern key-value stores followed.</p></div>
+    </div>
+    <p class="story">Notice what the trick trades: perfect balance for stability. A plain modulo spreads keys beautifully, but only if nothing ever changes. The ring accepts some lumpiness in exchange for surviving change.</p>
+    <div class="next"><button class="btn primary" data-go="4">Where is this used today?</button></div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="step" data-step="4">
+    <p class="story">Anywhere a set of machines shares out a set of keys and the machines can't be trusted to stay put.</p>
+    <div class="uses">
+      <div class="use"><h3>Dynamo-style databases</h3><p>Amazon DynamoDB, Apache Cassandra and Riak partition data around a ring with virtual nodes, so a node joining or dying reshuffles only a slice.</p></div>
+      <div class="use"><h3>Distributed caches</h3><p>Memcached client libraries pick which cache server holds a key with a ring (the "ketama" scheme, written at Last.fm in 2007 after server changes kept wiping their whole cache), so a cache node outage doesn't flush every other node.</p></div>
+      <div class="use"><h3>Content delivery networks</h3><p>Akamai uses consistent hashing inside a cluster to decide which edge server should hold a given piece of content.</p></div>
+    </div>
+    <div class="caveat">What it can't do: it doesn't balance load by itself (hot keys are still hot), and lookups need the sorted pin list, so a plain ring is slower than a modulo. Newer cousins like jump hash and rendezvous hashing trade away the circle to fix that.</div>
+    <div class="next"><button class="btn primary" data-go="5">Want to read more?</button></div>
+  </section>
+
+  <!-- STEP 6: further reading -->
+  <section class="step" data-step="5">
+    <p class="story">If the ring got you curious, here's where to go next. Start with the source, then work toward the friendlier explainers.</p>
+    <div class="reads">
+      <a class="read" href="https://dl.acm.org/doi/10.1145/258533.258660" target="_blank" rel="noopener"><h3>Karger et al., the original 1997 paper</h3><p>Ten pages. The consistent hashing part is short; the random trees half is a bonus.</p></a>
+      <a class="read" href="https://web.stanford.edu/class/cs168/l/l1.pdf" target="_blank" rel="noopener"><h3>Tim Roughgarden, Stanford CS168 lecture notes</h3><p>The clearest written walk-through, with the balance and monotonicity properties spelled out.</p></a>
+      <a class="read" href="https://en.wikipedia.org/wiki/Consistent_hashing" target="_blank" rel="noopener"><h3>Wikipedia, Consistent hashing</h3><p>History, the O(K/n) keys-moved property, and a list of variants.</p></a>
+      <a class="read" href="https://www.akamai.com/company/company-history" target="_blank" rel="noopener"><h3>Akamai, company history</h3><p>How a theory paper and an MIT business-plan contest turned into a CDN.</p></a>
+      <a class="read" href="https://www.youtube.com/watch?v=apHAqUG3Pi8" target="_blank" rel="noopener"><h3>Tom Leighton, talk on consistent hashing and Akamai (2012)</h3><p>One of the authors telling the origin story in person.</p></a>
+    </div>
+    <div class="next"><button class="btn" data-go="1">Back to the playground</button></div>
+  </section>
+
+  <footer>Built as a prototype for explaining tech concepts to curious generalists.</footer>
+</main>
+
+<script data-inlined="hashring.js">
+// Pure consistent-hashing logic, no DOM. Loaded by the explainer page and by the tests.
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.HashRing = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+
+  // Same FNV-1a mix as bloom.js. Returns a 32-bit unsigned int.
+  function hash32(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    return h >>> 0;
+  }
+  // Position on the ring as a fraction in [0, 1).
+  function pos(str) { return hash32(str) / 4294967296; }
+
+  function create(opts) {
+    const vnodes = opts && opts.vnodes != null ? opts.vnodes : 1;
+    if (!(vnodes >= 1)) throw new Error('vnodes must be at least 1');
+    const servers = [];       // insertion order matters for the naive mod-N comparison
+    const keys = new Set();
+
+    // Sorted pins: each server contributes `vnodes` pins.
+    const ring = () => {
+      const pins = [];
+      servers.forEach(s => { for (let i = 0; i < vnodes; i++) pins.push({ pos: pos(s + '#' + i), server: s, vnode: i }); });
+      return pins.sort((a, b) => a.pos - b.pos);
+    };
+
+    // Walk clockwise to the next pin; wrap to the first one.
+    const owner = key => {
+      const pins = ring();
+      if (!pins.length) return null;
+      const p = pos(key);
+      const hit = pins.find(pin => pin.pos > p);
+      return (hit || pins[0]).server;
+    };
+
+    // The naive scheme this replaces: hash(key) mod number of servers.
+    const modOwner = key => servers.length ? servers[hash32(key) % servers.length] : null;
+
+    const assignment = fn => { const m = new Map(); keys.forEach(k => m.set(k, fn(k))); return m; };
+    const loads = () => {
+      const m = new Map(servers.map(s => [s, 0]));
+      keys.forEach(k => { const o = owner(k); if (o !== null) m.set(o, m.get(o) + 1); });
+      return m;
+    };
+
+    return {
+      vnodes, servers, keys, ring, owner, modOwner, loads,
+      snapshot() { return { ring: assignment(owner), mod: assignment(modOwner) }; },
+      addServer(name) { if (!name || servers.includes(name)) return false; servers.push(name); return true; },
+      removeServer(name) { const i = servers.indexOf(name); if (i < 0) return false; servers.splice(i, 1); return true; },
+      addKey(k) { const key = String(k).trim(); if (!key) return false; keys.add(key); return true; },
+      rebuild(next) {
+        const f = create({ vnodes: (next && next.vnodes) || vnodes });
+        servers.forEach(s => f.addServer(s));
+        keys.forEach(k => f.addKey(k));
+        return f;
+      }
+    };
+  }
+
+  // Fraction of keys (present in both) whose owner changed.
+  function moved(before, after) {
+    let total = 0, changed = 0;
+    before.forEach((o, k) => { if (after.has(k)) { total++; if (after.get(k) !== o) changed++; } });
+    return total ? changed / total : 0;
+  }
+
+  return { create, hash32, pos, moved };
+});
+</script>
+<script>
+(() => {
+  // The ring itself lives in hashring.js (unit tested). This file only renders it.
+  const COLORS = ['#E0387C','#2FB77C','#3B82F6','#F59E0B','#8B5CF6','#EC4899','#14B8A6','#F97316'];
+  const NAMES = ['A','B','C','D','E','F','G','H'];
+  let R = HashRing.create({ vnodes: 1 });
+  let last = { ring: 0, mod: 0, what: '' };
+  const seed = () => { ['A','B','C'].forEach(s => R.addServer(s)); addKeys(30); };
+  let keyCount = 0;
+  const addKeys = n => { for (let i = 0; i < n; i++) R.addKey('page-' + (++keyCount)); };
+  const reset = () => { R = HashRing.create({ vnodes: R.vnodes }); keyCount = 0; last = { ring: 0, mod: 0, what: '' }; seed(); };
+  seed();
+
+  const colorOf = s => COLORS[NAMES.indexOf(s) % COLORS.length];
+  const pgs = [];
+  const renderAll = () => pgs.forEach(p => p.render());
+
+  // Apply a change to the ring and record how many keys moved, under both schemes.
+  const change = (label, fn) => {
+    const before = R.snapshot();
+    fn();
+    const after = R.snapshot();
+    last = { ring: HashRing.moved(before.ring, after.ring), mod: HashRing.moved(before.mod, after.mod), what: label };
+    renderAll();
+  };
+
+  const build = (root, advanced) => {
+    root.innerHTML = `
+      ${advanced ? `<div class="sliders"><label>Pins per server (virtual nodes): <b data-vv></b><input type="range" min="1" max="50" data-v></label></div>` : ''}
+      <div class="ringwrap"><svg viewBox="0 0 320 320" data-svg aria-label="hash ring"></svg><div class="bars" data-bars></div></div>
+      <div class="moved">
+        <div class="ring"><b data-mr>0%</b>of keys moved on the ring <small data-what></small></div>
+        <div class="naive"><b data-mm>0%</b>would have moved with plain modulo</div>
+      </div>
+      <div class="controls">
+        <button class="btn primary" data-addsrv>Add a server</button>
+        ${advanced ? `<select data-rm aria-label="server to remove"></select><button class="btn danger" data-rmsrv>Remove it</button>` : `<button class="btn danger" data-rmsrv>Remove last server</button>`}
+        <button class="btn" data-addkeys>Add 20 keys</button>
+        <button class="btn" data-reset>Start over</button>
+      </div>
+      <div class="stats">
+        <span><b data-ns>0</b>servers</span>
+        <span><b data-nk>0</b>keys</span>
+        <span><b data-max>0</b>keys on the busiest server</span>
+      </div>`;
+    const q = s => root.querySelector(s);
+    const svg = q('[data-svg]');
+
+    const pt = (frac, r) => { const a = frac * 2 * Math.PI - Math.PI / 2; return [160 + r * Math.cos(a), 160 + r * Math.sin(a)]; };
+    const arc = (from, to, r) => {
+      const [x1, y1] = pt(from, r), [x2, y2] = pt(to, r);
+      const sweep = (to - from + 1) % 1;
+      return `M${x1},${y1} A${r},${r} 0 ${sweep > 0.5 ? 1 : 0} 1 ${x2},${y2}`;
+    };
+
+    const render = () => {
+      const pins = R.ring();
+      let s = `<circle cx="160" cy="160" r="120" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
+      // arcs: the arc ending at a pin belongs to that pin's server
+      if (pins.length > 1) pins.forEach((p, i) => { const prev = pins[(i - 1 + pins.length) % pins.length]; s += `<path d="${arc(prev.pos, p.pos, 120)}" fill="none" stroke="${colorOf(p.server)}" stroke-width="10" stroke-linecap="butt" opacity=".85"/>`; });
+      else if (pins.length === 1) s += `<circle cx="160" cy="160" r="120" fill="none" stroke="${colorOf(pins[0].server)}" stroke-width="10" opacity=".85"/>`;
+      R.keys.forEach(k => { const [x, y] = pt(HashRing.pos(k), 100); const o = R.owner(k); s += `<circle cx="${x}" cy="${y}" r="3.5" fill="${o ? colorOf(o) : 'var(--ink-soft)'}" stroke="var(--ink)" stroke-width="1"/>`; });
+      pins.forEach(p => { const [x, y] = pt(p.pos, 120); s += `<circle cx="${x}" cy="${y}" r="${R.vnodes > 1 ? 5 : 9}" fill="${colorOf(p.server)}" stroke="var(--ink)" stroke-width="2"/>`; if (p.vnode === 0) { const [lx, ly] = pt(p.pos, 145); s += `<text x="${lx}" y="${ly}" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="var(--ink)">${p.server}</text>`; } });
+      svg.innerHTML = s;
+
+      const loads = R.loads(); const maxL = Math.max(1, ...loads.values());
+      q('[data-bars]').innerHTML = R.servers.length ? R.servers.map(sv => `<div class="bar" style="--c:${colorOf(sv)}"><span>Server ${sv}</span><i style="width:${100 * loads.get(sv) / maxL}%"></i><b>${loads.get(sv)}</b></div>`).join('') : `<div class="empty">No servers. Every key is homeless.</div>`;
+      q('[data-mr]').textContent = Math.round(100 * last.ring) + '%';
+      q('[data-mm]').textContent = Math.round(100 * last.mod) + '%';
+      q('[data-what]').textContent = last.what ? `(${last.what})` : '';
+      q('[data-ns]').textContent = R.servers.length; q('[data-nk]').textContent = R.keys.size; q('[data-max]').textContent = R.servers.length ? maxL : 0;
+      if (advanced) { q('[data-vv]').textContent = R.vnodes; q('[data-v]').value = R.vnodes; const sel = q('[data-rm]'); sel.innerHTML = R.servers.map(sv => `<option>${sv}</option>`).join(''); }
+    };
+
+    q('[data-addsrv]').onclick = () => { const next = NAMES.find(n => !R.servers.includes(n)); if (!next) return; change('added ' + next, () => R.addServer(next)); };
+    q('[data-rmsrv]').onclick = () => { const victim = advanced ? q('[data-rm]').value : R.servers[R.servers.length - 1]; if (!victim) return; change('removed ' + victim, () => R.removeServer(victim)); };
+    q('[data-addkeys]').onclick = () => { addKeys(20); last = { ring: 0, mod: 0, what: '' }; renderAll(); };
+    q('[data-reset]').onclick = () => { reset(); renderAll(); };
+    if (advanced) q('[data-v]').oninput = e => { R = R.rebuild({ vnodes: +e.target.value }); last = { ring: 0, mod: 0, what: '' }; renderAll(); };
+
+    pgs.push({ render });
+    render();
+  };
+
+  document.querySelectorAll('[data-pg]').forEach(el => build(el, el.hasAttribute('data-advanced')));
+
+  const go = n => {
+    document.querySelectorAll('.step').forEach(s => s.classList.toggle('on', s.dataset.step == n));
+    document.querySelectorAll('nav button').forEach(b => b.dataset.go == n ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    renderAll();
+  };
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+})();
+</script>
+</body>
+</html>
