@@ -4,7 +4,7 @@ const path = require('path');
 const { JSDOM } = require('jsdom');
 
 function loadPage(file) {
-  const html = fs.readFileSync(path.join(__dirname, file), 'utf8');
+  const html = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
   if (!html.includes('data-inlined=')) throw new Error(`${file} is not built. Run: node build.js`);
   const dom = new JSDOM(html, { runScripts: 'dangerously', pretendToBeVisual: true });
   const { window } = dom;

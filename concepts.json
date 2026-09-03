@@ -1,0 +1,29 @@
+[
+  {
+    "id": "bloom-filter",
+    "name": "Bloom filters",
+    "hook": "The bouncer with a bad memory. Add words, light bulbs, and catch the bouncer waving in a stranger.",
+    "wikipedia": "Bloom filter",
+    "playground": "bloom",
+    "lib": "bloom.js",
+    "published": true
+  },
+  {
+    "id": "consistent-hashing",
+    "name": "Consistent hashing",
+    "hook": "The coat check that never panics. Add and remove servers and watch how few keys have to move.",
+    "wikipedia": "Consistent hashing",
+    "playground": "ring",
+    "lib": "hashring.js",
+    "published": true
+  },
+  {
+    "id": "token-bucket",
+    "name": "Rate limiting (token bucket)",
+    "hook": "The bouncer with a bag of tickets. Burst in while tickets last, then wait for the drip.",
+    "wikipedia": "Token bucket",
+    "playground": null,
+    "lib": null,
+    "published": false
+  }
+]

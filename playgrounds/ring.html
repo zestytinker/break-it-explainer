@@ -1,0 +1,113 @@
+<!-- css -->
+<style>
+  .ringwrap{display:grid;grid-template-columns:minmax(220px,320px) 1fr;gap:18px;align-items:start;background:var(--paper);border-radius:20px;border:2px solid var(--ink);padding:18px}
+  .ringwrap svg{width:100%;height:auto;display:block}
+  .bars{display:grid;gap:8px;align-self:stretch}
+  .bar{display:grid;grid-template-columns:70px 1fr 40px;gap:8px;align-items:center;font-size:15px}
+  .bar i{display:block;height:18px;border-radius:9px;border:2px solid var(--ink);background:var(--c);transition:width .3s}
+  .bar b{text-align:right}
+  .bars .empty{color:var(--ink-soft);font-size:15px}
+  .moved{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+  .moved div{border:2px dashed var(--ink);border-radius:16px;padding:10px 14px}
+  .moved b{display:block;font-size:26px}
+  .moved .ring b{color:#1F7A52}.moved .naive b{color:var(--berry)}
+  .moved small{color:var(--ink-soft)}
+  select{font:inherit;font-size:16px;padding:8px 10px;border:2px solid var(--ink);border-radius:12px;background:var(--paper)}
+  @media (max-width:560px){.ringwrap{grid-template-columns:1fr}.moved{grid-template-columns:1fr}}
+</style>
+<!-- script -->
+<script>
+(() => {
+  // The ring itself lives in hashring.js (unit tested). This file only renders it.
+  const COLORS = ['#E0387C','#2FB77C','#3B82F6','#F59E0B','#8B5CF6','#EC4899','#14B8A6','#F97316'];
+  const NAMES = ['A','B','C','D','E','F','G','H'];
+  let R = HashRing.create({ vnodes: 1 });
+  let last = { ring: 0, mod: 0, what: '' };
+  const seed = () => { ['A','B','C'].forEach(s => R.addServer(s)); addKeys(30); };
+  let keyCount = 0;
+  const addKeys = n => { for (let i = 0; i < n; i++) R.addKey('page-' + (++keyCount)); };
+  const reset = () => { R = HashRing.create({ vnodes: R.vnodes }); keyCount = 0; last = { ring: 0, mod: 0, what: '' }; seed(); };
+  seed();
+
+  const colorOf = s => COLORS[NAMES.indexOf(s) % COLORS.length];
+  const pgs = [];
+  const renderAll = () => pgs.forEach(p => p.render());
+
+  // Apply a change to the ring and record how many keys moved, under both schemes.
+  const change = (label, fn) => {
+    const before = R.snapshot();
+    fn();
+    const after = R.snapshot();
+    last = { ring: HashRing.moved(before.ring, after.ring), mod: HashRing.moved(before.mod, after.mod), what: label };
+    renderAll();
+  };
+
+  const build = (root, advanced) => {
+    root.innerHTML = `
+      ${advanced ? `<div class="sliders"><label>Pins per server (virtual nodes): <b data-vv></b><input type="range" min="1" max="50" data-v></label></div>` : ''}
+      <div class="ringwrap"><svg viewBox="0 0 320 320" data-svg aria-label="hash ring"></svg><div class="bars" data-bars></div></div>
+      <div class="moved">
+        <div class="ring"><b data-mr>0%</b>of keys moved on the ring <small data-what></small></div>
+        <div class="naive"><b data-mm>0%</b>would have moved with plain modulo</div>
+      </div>
+      <div class="controls">
+        <button class="btn primary" data-addsrv>Add a server</button>
+        ${advanced ? `<select data-rm aria-label="server to remove"></select><button class="btn danger" data-rmsrv>Remove it</button>` : `<button class="btn danger" data-rmsrv>Remove last server</button>`}
+        <button class="btn" data-addkeys>Add 20 keys</button>
+        <button class="btn" data-reset>Start over</button>
+      </div>
+      <div class="stats">
+        <span><b data-ns>0</b>servers</span>
+        <span><b data-nk>0</b>keys</span>
+        <span><b data-max>0</b>keys on the busiest server</span>
+      </div>`;
+    const q = s => root.querySelector(s);
+    const svg = q('[data-svg]');
+
+    const pt = (frac, r) => { const a = frac * 2 * Math.PI - Math.PI / 2; return [160 + r * Math.cos(a), 160 + r * Math.sin(a)]; };
+    const arc = (from, to, r) => {
+      const [x1, y1] = pt(from, r), [x2, y2] = pt(to, r);
+      const sweep = (to - from + 1) % 1;
+      return `M${x1},${y1} A${r},${r} 0 ${sweep > 0.5 ? 1 : 0} 1 ${x2},${y2}`;
+    };
+
+    const render = () => {
+      const pins = R.ring();
+      let s = `<circle cx="160" cy="160" r="120" fill="none" stroke="var(--ink)" stroke-width="2"/>`;
+      // arcs: the arc ending at a pin belongs to that pin's server
+      if (pins.length > 1) pins.forEach((p, i) => { const prev = pins[(i - 1 + pins.length) % pins.length]; s += `<path d="${arc(prev.pos, p.pos, 120)}" fill="none" stroke="${colorOf(p.server)}" stroke-width="10" stroke-linecap="butt" opacity=".85"/>`; });
+      else if (pins.length === 1) s += `<circle cx="160" cy="160" r="120" fill="none" stroke="${colorOf(pins[0].server)}" stroke-width="10" opacity=".85"/>`;
+      R.keys.forEach(k => { const [x, y] = pt(HashRing.pos(k), 100); const o = R.owner(k); s += `<circle cx="${x}" cy="${y}" r="3.5" fill="${o ? colorOf(o) : 'var(--ink-soft)'}" stroke="var(--ink)" stroke-width="1"/>`; });
+      pins.forEach(p => { const [x, y] = pt(p.pos, 120); s += `<circle cx="${x}" cy="${y}" r="${R.vnodes > 1 ? 5 : 9}" fill="${colorOf(p.server)}" stroke="var(--ink)" stroke-width="2"/>`; if (p.vnode === 0) { const [lx, ly] = pt(p.pos, 145); s += `<text x="${lx}" y="${ly}" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="var(--ink)">${p.server}</text>`; } });
+      svg.innerHTML = s;
+
+      const loads = R.loads(); const maxL = Math.max(1, ...loads.values());
+      q('[data-bars]').innerHTML = R.servers.length ? R.servers.map(sv => `<div class="bar" style="--c:${colorOf(sv)}"><span>Server ${sv}</span><i style="width:${100 * loads.get(sv) / maxL}%"></i><b>${loads.get(sv)}</b></div>`).join('') : `<div class="empty">No servers. Every key is homeless.</div>`;
+      q('[data-mr]').textContent = Math.round(100 * last.ring) + '%';
+      q('[data-mm]').textContent = Math.round(100 * last.mod) + '%';
+      q('[data-what]').textContent = last.what ? `(${last.what})` : '';
+      q('[data-ns]').textContent = R.servers.length; q('[data-nk]').textContent = R.keys.size; q('[data-max]').textContent = R.servers.length ? maxL : 0;
+      if (advanced) { q('[data-vv]').textContent = R.vnodes; q('[data-v]').value = R.vnodes; const sel = q('[data-rm]'); sel.innerHTML = R.servers.map(sv => `<option>${sv}</option>`).join(''); }
+    };
+
+    q('[data-addsrv]').onclick = () => { const next = NAMES.find(n => !R.servers.includes(n)); if (!next) return; change('added ' + next, () => R.addServer(next)); };
+    q('[data-rmsrv]').onclick = () => { const victim = advanced ? q('[data-rm]').value : R.servers[R.servers.length - 1]; if (!victim) return; change('removed ' + victim, () => R.removeServer(victim)); };
+    q('[data-addkeys]').onclick = () => { addKeys(20); last = { ring: 0, mod: 0, what: '' }; renderAll(); };
+    q('[data-reset]').onclick = () => { reset(); renderAll(); };
+    if (advanced) q('[data-v]').oninput = e => { R = R.rebuild({ vnodes: +e.target.value }); last = { ring: 0, mod: 0, what: '' }; renderAll(); };
+
+    pgs.push({ render });
+    render();
+  };
+
+  document.querySelectorAll('[data-pg]').forEach(el => build(el, el.hasAttribute('data-advanced')));
+
+  const go = n => {
+    document.querySelectorAll('.step').forEach(s => s.classList.toggle('on', s.dataset.step == n));
+    document.querySelectorAll('nav button').forEach(b => b.dataset.go == n ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    renderAll();
+  };
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+})();
+</script>

@@ -1,0 +1,67 @@
+{
+  "pageTitle": "Token buckets, explained with a bag of tickets",
+  "title": "The bouncer with a bag of tickets",
+  "subtitle": "A hands-on tour of token-bucket rate limiting, in six short steps.",
+  "steps": {
+    "why": {
+      "paras": [
+        "Your API is popular. One client starts hammering it with thousands of requests a second, and everyone else's requests queue up behind them. You need a way to say <b>slow down</b> that still lets normal users move fast.",
+        "The obvious rule, <b>at most N requests per second</b>, punishes honest bursts. A phone app that wakes up and syncs ten things at once gets blocked, while a bot that sends exactly N per second sails through.",
+        "Picture a bouncer with a bag of tickets. Every request costs a ticket. Tickets drip into the bag at a steady rate, and the bag has a fixed size. Show up after a quiet spell and you can spend a handful at once. Keep hammering and you wait for the drip."
+      ],
+      "next": "Show me the bag"
+    },
+    "how": {
+      "paras": [
+        "The bag is the bucket, tickets are tokens. Two numbers describe it: how fast tokens drip in (the <b>rate</b>) and how many the bag holds (the <b>burst</b>). A request takes one token if there is one, or gets refused.",
+        "Fire requests one at a time and watch the level drop and refill. Then fire a burst and see the bag empty out."
+      ],
+      "next": "Now let me break it"
+    },
+    "break": {
+      "paras": [
+        "Here's the catch. A big bucket lets through a big burst, which is exactly the spike you were trying to prevent. A tiny bucket blocks the honest phone app. There is no setting that is right for every client.",
+        "Play with the two sliders and try to find a setting that lets the phone app sync but stops the bot."
+      ],
+      "next": "Who came up with this?"
+    },
+    "origin": {
+      "intro": "The token bucket comes from computer networking, where it was used to control how fast a link could send packets and how big a burst it could absorb.",
+      "timeline": [
+        { "label": "The problem", "text": "Networks in the 1980s needed a way to let a sender burst briefly without letting it flood the link." },
+        { "label": "The naive fix", "text": "Cap the sending rate at a fixed number of packets per second. Fair, but it throws away the burst capacity that real traffic needs." },
+        { "label": "The insight", "text": "Separate the two knobs: an average rate and a burst size. Tokens accumulate while the sender is quiet, so a quiet sender earns the right to burst." },
+        { "label": "Since then", "text": "The idea moved from routers to web APIs. It was standardised for ATM networks in 1994 and is now a common default in API gateways." }
+      ],
+      "takeaway": "The trade: you accept short bursts in exchange for a simple, predictable average. The bucket size is the size of the burst you are willing to eat.",
+      "next": "Where is this used today?"
+    },
+    "uses": {
+      "intro": "Anywhere something has to be fair over time but forgiving in the moment.",
+      "items": [
+        { "title": "Linux traffic control", "text": "The kernel's traffic shaping tools use token buckets to limit bandwidth per queue." },
+        { "title": "API gateways", "text": "Amazon API Gateway describes its throttling in terms of a rate and a burst, which is a token bucket." },
+        { "title": "Video streaming", "text": "Players use a bucket to smooth out chunks so playback does not stutter." }
+      ],
+      "caveat": "What it can't do: it limits one client at a time, so it does nothing about total load across all clients, and clocks that drift between servers can let a client double-spend tokens.",
+      "next": "Want to read more?"
+    },
+    "reads": {
+      "intro": "If the bucket got you curious, here's where to go next.",
+      "items": [
+        { "title": "Wikipedia, Token bucket", "url": "https://en.wikipedia.org/wiki/Token_bucket", "note": "The algorithm, its relation to the leaky bucket, and where it is used." },
+        { "title": "Linux tc(8) manual", "url": "https://man7.org/linux/man-pages/man8/tc.8.html", "note": "The real thing: tbf, HTB and friends." },
+        { "title": "Amazon API Gateway throttling docs", "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html", "note": "A production rate limiter described in rate and burst terms." }
+      ]
+    }
+  },
+  "claims": [
+    { "id": "c1", "step": "origin.intro", "text": "The token bucket originated in computer networking for controlling packet transmission rate and burst size." },
+    { "id": "c2", "step": "origin.timeline[3]", "text": "The token bucket was standardised for ATM networks in 1994." },
+    { "id": "c3x", "step": "origin.timeline[3]", "text": "The token bucket is a common default in API gateways." },
+    { "id": "c4", "step": "uses.items[0]", "text": "Linux traffic control uses token buckets to limit bandwidth." },
+    { "id": "c5u", "step": "uses.items[1]", "text": "Amazon API Gateway throttling is defined by a rate and a burst." },
+    { "id": "c6u", "step": "uses.items[2]", "text": "Video players use token buckets to smooth playback." },
+    { "id": "c7", "step": "origin.timeline[0]", "text": "Networks in the 1980s needed to allow brief bursts without flooding a link." }
+  ]
+}

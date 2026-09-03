@@ -1,0 +1,114 @@
+{
+  "id": "bloom-filter",
+  "name": "Bloom filters",
+  "hook": "The bouncer with a bad memory. Add words, light bulbs, and catch the bouncer waving in a stranger.",
+  "pageTitle": "Bloom filters, explained with light bulbs",
+  "title": "The bouncer with a bad memory",
+  "subtitle": "A hands-on tour of Bloom filters, in four short steps.",
+  "steps": {
+    "why": {
+      "paras": [
+        "Your browser wants to warn you before you open a <b>dodgy website</b>. There are millions of them, and the list changes every day.",
+        "Downloading the whole list to your phone is too heavy. So early versions of Chrome kept a <b>tiny, blurry sketch</b> of the list instead. The sketch can never say \"yes, definitely\". It can only say <b>\"definitely not\"</b> or <b>\"hmm, probably\"</b>.",
+        "That blurry sketch is a Bloom filter. It's like a bouncer who forgets faces but remembers a few odd details: \"green jacket, tall, laughs loudly\". Anyone matching all three gets a second look."
+      ],
+      "next": "Show me the bouncer"
+    },
+    "how": {
+      "paras": [
+        "This strip of bulbs is all the memory the bouncer gets. Type a word and hit <b>Add</b>. The word gets scrambled three different ways, and each scramble points at one bulb. Those bulbs turn on.",
+        "Then <b>Check</b> a word. If any of its three bulbs is dark, the bouncer is certain: never seen it. If all three glow, it's a \"probably\"."
+      ],
+      "next": "Now let me break it"
+    },
+    "break": {
+      "paras": [
+        "Here's the catch. Bulbs never turn off, and different words can share bulbs. Fill the strip with strangers, then check a word you <b>never added</b>. Watch the bouncer wave it through anyway.",
+        "Play with the sliders: more bulbs means fewer mistakes, and more scrambles per word helps too, until the strip gets crowded."
+      ],
+      "next": "Who came up with this?"
+    },
+    "origin": {
+      "intro": "It's 1970. <b>Burton H. Bloom</b>, a programmer at Computer Usage Company in Massachusetts, publishes a five-page paper in <i>Communications of the ACM</i>: \"Space/Time Trade-offs in Hash Coding with Allowable Errors\".",
+      "timeline": [
+        {
+          "label": "The problem",
+          "text": "Computers had tiny fast memory (core) and big slow storage (disk). Bloom's example was a program that adds hyphens to words. About 90% of words follow simple rules. The awkward 50,000 or so need a dictionary lookup, and the dictionary only fits on disk."
+        },
+        {
+          "label": "The naive fix",
+          "text": "Look every word up on disk. Slow, because most trips to the disk come back empty-handed."
+        },
+        {
+          "label": "The insight",
+          "text": "Keep a blurry sketch of the awkward words in fast memory. A \"definitely not\" skips the disk. A \"probably\" pays for one disk trip, and the occasional false alarm just costs a wasted trip, not a wrong hyphen. Bloom worked out this cut disk visits by about 84%."
+        },
+        {
+          "label": "Since then",
+          "text": "The idea sat quietly for decades, then took off in the 1990s and 2000s when web caches, databases and networks all hit the same wall: too much data, too little fast memory. Cousins appeared too: counting Bloom filters (which can delete), cuckoo filters, and learned filters that use a small model as the first pass."
+        }
+      ],
+      "takeaway": "Notice what Bloom actually traded: he gave up a little correctness to gain a lot of memory. That trade is the whole trick, and it's why the strip above breaks the way it does.",
+      "next": "Where is this used today?"
+    },
+    "uses": {
+      "intro": "That \"definitely not\" answer is the whole point. It lets a system skip expensive work with total confidence, and only pay the full price on a \"probably\".",
+      "items": [
+        {
+          "title": "Browsers and URL checks",
+          "text": "Is this site on the danger list? A dark bulb means \"no, carry on\" with no network call at all."
+        },
+        {
+          "title": "Databases like Cassandra and RocksDB",
+          "text": "Is this key inside this file on disk? Each file can keep a Bloom filter so the database skips files that definitely don't have it."
+        },
+        {
+          "title": "Caches and CDNs",
+          "text": "Has anyone asked for this item before? Only cache it the second time, so one-hit wonders don't clog the shelf."
+        }
+      ],
+      "caveat": "What it can't do: it never says a definite <b>yes</b>, and you can't remove a word once added, because turning off a bulb might erase someone else's clue.",
+      "next": "Want to read more?"
+    },
+    "reads": {
+      "intro": "If the bulbs got you curious, here's where to go next. Start with the source, then work toward the friendlier explainers.",
+      "items": [
+        {
+          "title": "Burton H. Bloom, the original 1970 paper",
+          "url": "https://dl.acm.org/doi/10.1145/362686.362692",
+          "note": "Five pages, surprisingly readable, and the hyphenation example is right there in it."
+        },
+        {
+          "title": "Broder and Mitzenmacher, Network Applications of Bloom Filters: A Survey (2004)",
+          "url": "https://www.eecs.harvard.edu/~michaelm/postscripts/im2005b.pdf",
+          "note": "The paper that reintroduced Bloom filters to a new generation. Readable, and full of real systems."
+        },
+        {
+          "title": "Wikipedia, Bloom filter",
+          "url": "https://en.wikipedia.org/wiki/Bloom_filter",
+          "note": "The full picture: the false-positive formula, the optimal number of hashes, and a long list of variants."
+        },
+        {
+          "title": "Jason Davies, interactive Bloom filter",
+          "url": "https://www.jasondavies.com/bloomfilter/",
+          "note": "The classic visualization. Same idea as this page, with real hash math on show."
+        },
+        {
+          "title": "YourBasic, Bloom filters explained",
+          "url": "https://yourbasic.org/algorithms/bloom-filter/",
+          "note": "A short, plain-language write-up with a small code example in Go."
+        }
+      ]
+    }
+  },
+  "verification": {
+    "method": "manual",
+    "sources": [
+      "Bloom (1970), Communications of the ACM",
+      "Chromium source and code review",
+      "Apache Cassandra docs",
+      "RocksDB wiki",
+      "Maggs and Sitaraman (2015), Akamai"
+    ]
+  }
+}

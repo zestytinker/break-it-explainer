@@ -1,0 +1,113 @@
+<!-- css -->
+<style>
+</style>
+<!-- script -->
+<script>
+(() => {
+  // ---------- state shared across both playgrounds ----------
+  // The Bloom filter itself lives in bloom.js (unit tested). This file only renders it.
+  let F = Bloom.create({ m: 24, k: 3 });
+  let falsePos = 0;
+  const reset = () => { F = Bloom.create({ m: F.m, k: F.k }); falsePos = 0; };
+
+  const strangers = ['pretzel','lantern','octopus','kazoo','tundra','velvet','marmot','sonnet','glacier','biscuit','quasar','pickle','harbor','mango','wombat','ledger','saffron','trellis','yodel','compass','fjord','nutmeg','zeppelin','gumbo','orchid','tinsel','walrus','cobalt','juniper','sprocket'];
+
+  const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pgs = [];
+  const renderAll = () => pgs.forEach(p => p.render());
+
+  // ---------- build one playground ----------
+  const build = (root, advanced) => {
+    root.innerHTML = `
+      ${advanced ? `
+      <div class="sliders">
+        <label>Bulbs on the strip: <b data-mv></b><input type="range" min="8" max="64" step="4" data-m></label>
+        <label>Scrambles per word: <b data-kv></b><input type="range" min="1" max="6" data-k></label>
+      </div>` : ''}
+      <div class="strip" data-strip></div>
+      <div class="chips" data-chips></div>
+      <div class="controls">
+        <input type="text" placeholder="type a word, e.g. pineapple" data-in aria-label="Word">
+        <button class="btn primary" data-add>Add</button>
+        <button class="btn" data-check>Check</button>
+        ${advanced ? `<button class="btn danger" data-fill>Fill with 8 strangers</button>` : ''}
+        <button class="btn" data-reset>Start over</button>
+      </div>
+      <div class="verdict" data-verdict>Nothing checked yet.</div>
+      <div class="stats">
+        <span><b data-n>0</b>words added</span>
+        <span><b data-lit>0%</b>bulbs glowing</span>
+        <span><b data-fp>0%</b>chance of a false "probably"</span>
+        ${advanced ? `<span><b data-caught>0</b>false alarms you caught</span>` : ''}
+      </div>`;
+
+    const q = s => root.querySelector(s);
+    const strip = q('[data-strip]'), input = q('[data-in]'), verdict = q('[data-verdict]');
+
+    const render = () => {
+      strip.innerHTML = '';
+      F.bits.forEach((b, i) => { const d = document.createElement('div'); d.className = 'bulb' + (b ? ' on' : ''); d.dataset.i = i; strip.appendChild(d); });
+      q('[data-chips]').innerHTML = [...F.added].map(w => `<span class="chip">${esc(w)}</span>`).join('');
+      q('[data-n]').textContent = F.added.size;
+      q('[data-lit]').textContent = Math.round(100 * F.litFraction()) + '%';
+      q('[data-fp]').textContent = Math.round(100 * F.fpRate()) + '%';
+      if (advanced) { q('[data-caught]').textContent = falsePos; q('[data-mv]').textContent = F.m; q('[data-kv]').textContent = F.k; q('[data-m]').value = F.m; q('[data-k]').value = F.k; }
+    };
+
+    const flash = (pos, cls) => pos.forEach((i, n) => { const b = strip.children[i]; if (!b) return; setTimeout(() => { b.classList.add(cls); setTimeout(() => b.classList.remove(cls), 500); }, n * 120); });
+
+    q('[data-add]').onclick = () => {
+      const w = input.value.trim(); if (!w) return;
+      const pos = F.positions(w); F.add(w); renderAll(); flash(pos, 'ping');
+      verdict.className = 'verdict added';
+      verdict.innerHTML = `Added <b>${esc(w)}</b>. It lit bulbs ${pos.map(p => p + 1).join(', ')}.`;
+      input.value = ''; input.focus();
+    };
+
+    q('[data-check]').onclick = () => {
+      const w = input.value.trim(); if (!w) return;
+      const r = F.check(w);
+      if (r.maybe && !r.truly) falsePos++;
+      renderAll();
+      flash(r.positions, r.maybe ? 'ping' : 'miss');
+      if (r.maybe) {
+        verdict.className = 'verdict yes';
+        verdict.innerHTML = `<span class="stamp">PROBABLY</span> all ${r.positions.length} bulbs for <b>${esc(w)}</b> are glowing.` + (r.truly ? '' : ` <br>But you never added it. That's a false alarm!`);
+      } else {
+        verdict.className = 'verdict no';
+        verdict.innerHTML = `<span class="stamp">DEFINITELY NOT</span> bulb ${r.firstDark + 1} is dark, so <b>${esc(w)}</b> was never added.`;
+      }
+      input.select();
+    };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') q('[data-check]').click(); });
+
+    q('[data-reset]').onclick = () => { reset(); renderAll(); verdict.className = 'verdict'; verdict.textContent = 'Strip cleared. Bouncer forgot everyone.'; };
+
+    if (advanced) {
+      q('[data-fill]').onclick = () => {
+        const pool = strangers.filter(s => !F.added.has(s)).sort(() => Math.random() - .5).slice(0, 8);
+        pool.forEach(w => F.add(w)); renderAll();
+        verdict.className = 'verdict added';
+        verdict.innerHTML = `Added ${pool.length} strangers. Now check a word you know you didn't add, like <b>${['banana','rocket','teapot','cactus'][Math.floor(Math.random()*4)]}</b>.`;
+      };
+      // changing m or k rebuilds the strip from the same added words
+      q('[data-m]').oninput = e => { F = F.rebuild({ m: +e.target.value }); renderAll(); };
+      q('[data-k]').oninput = e => { F = F.rebuild({ k: +e.target.value }); renderAll(); };
+    }
+
+    pgs.push({ render });
+    render();
+  };
+
+  document.querySelectorAll('[data-pg]').forEach(el => build(el, el.hasAttribute('data-advanced')));
+
+  // ---------- step navigation ----------
+  const go = n => {
+    document.querySelectorAll('.step').forEach(s => s.classList.toggle('on', s.dataset.step == n));
+    document.querySelectorAll('nav button').forEach(b => b.dataset.go == n ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    renderAll();
+  };
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+})();
+</script>

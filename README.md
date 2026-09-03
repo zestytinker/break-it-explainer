@@ -14,29 +14,51 @@ Two self-contained pages that teach a concept in six steps (why, how, break it, 
 
 Open either HTML file directly; the logic module is inlined by `build.js`.
 
+## How a page gets made
+
+```
+concepts.json  ──►  pipeline/run.js <id>  ──►  content/<id>.json  ──►  pipeline/render.js  ──►  <id>-explainer.html
+   (the menu)         draft with Claude         (verified prose)        (six-step template        (static, no setup)
+                      gather trusted sources                             + playground partial
+                      judge every claim                                  + inlined logic)
+                      cut / soften / keep
+                      write reports/<id>.md
+```
+
+Concepts are a fixed menu, so generation happens once, offline, and the site stays static. No API key ever reaches the browser.
+
+1. Add the concept to `concepts.json` with its Wikipedia title (and optional `mdn` query or `references` URLs to open-access sources).
+2. `ANTHROPIC_API_KEY=sk-... npm run generate -- <id>`
+3. Read `reports/<id>.md`. Every factual claim is listed as supported (with the source phrase), unverified (softened in the text), or contradicted (cut from the text).
+4. Set `"published": true` and `npm run build`. Commit the JSON, the report and the HTML together.
+
+`npm run generate -- <id> --dry` runs the whole flow against fixtures with no network, which is how the pipeline is tested.
+
+Trusted sources today: Wikipedia (article text plus its external references, fetched when open access) and MDN for web-platform topics. The judge is told to use only those excerpts, never its own memory.
+
 ## Develop
 
 ```
 npm install          # jsdom, for page tests only
-npm test             # builds, then runs unit + page + build tests
+npm test             # renders pages, then runs every test
 npm run coverage     # same, with a coverage report
 ```
 
-Edit `bloom.js` / `hashring.js`, then `npm test` (which runs `node build.js` first so the pages pick up the change).
+Edit logic in `bloom.js` / `hashring.js`, prose in `content/*.json`, layout in `pipeline/render.js`; `npm test` re-renders first so the pages always reflect the source of truth. CI fails if a committed page is out of sync with its content.
 
 ## Tests
 
 | file | what it covers |
 |---|---|
-| `bloom.test.js`, `hashring.test.js` | pure logic: hashing, guarantees (no false negatives, keys never move off a surviving server), formulas, rebuild, validation |
-| `bloom-page.test.js`, `hashring-page.test.js` | the UI in jsdom: buttons, sliders, verdicts, shared state between playgrounds, navigation |
-| `build.test.js` | the inliner: replacement, idempotence, missing-marker failure |
+| `test/bloom.test.js`, `test/hashring.test.js` | pure logic: hashing, guarantees (no false negatives, keys never move off a surviving server), formulas, rebuild, validation |
+| `test/bloom-page.test.js`, `test/hashring-page.test.js` | the rendered UI in jsdom: buttons, sliders, verdicts, shared state, navigation, escaping |
+| `test/pipeline.test.js` | draft validation and retry, claim verdict application (cut / soften), source parsing, renderer, end-to-end dry run |
 
 Statistical properties (load evenness, % keys moved) are asserted only in the module tests with large samples, never in UI tests, to avoid flakiness.
 
 ## Adding a concept
 
-Copy one of the HTML files, keep the six steps, write a new pure-logic module with tests, and register the pair in `build.js`. Steps 1, 4, 5 and 6 are prose; the playground in steps 2 and 3 is the part that has to be built fresh each time.
+Prose comes from the pipeline. The playground (steps 2 and 3) is still hand-built: add a partial in `playgrounds/`, a logic module with tests, and point the concept at them in `concepts.json`. Concepts without a playground render with a placeholder so the prose can ship first.
 
 ## License
 

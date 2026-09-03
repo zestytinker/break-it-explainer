@@ -14,5 +14,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - name: fail if build.js changed a page (pages must be committed already inlined)
+      - name: fail if rendering changed a page (content and HTML must be committed together)
         run: git diff --exit-code -- '*.html'

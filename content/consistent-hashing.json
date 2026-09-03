@@ -1,0 +1,113 @@
+{
+  "id": "consistent-hashing",
+  "name": "Consistent hashing",
+  "hook": "The coat check that never panics. Add and remove servers and watch how few keys have to move.",
+  "pageTitle": "Consistent hashing, explained with a coat check",
+  "title": "The coat check that never panics",
+  "subtitle": "A hands-on tour of consistent hashing, in six short steps.",
+  "steps": {
+    "why": {
+      "paras": [
+        "You run a website with <b>four cache servers</b>. Every page has to live on exactly one of them, and everyone has to agree which one, without phoning around.",
+        "The obvious rule: scramble the page's name into a number, divide by 4, and the remainder picks the server. Simple. It works right up until the day you add a <b>fifth server</b>. Now you divide by 5 instead, almost every remainder changes, and almost every page is suddenly on the wrong machine. Your caches are empty and your database is on fire.",
+        "Picture a coat check with four counters. Someone opens a fifth, and every coat in the building has to be carried to a new counter. Consistent hashing is the trick that moves only <b>one counter's worth</b> of coats."
+      ],
+      "next": "Show me the trick"
+    },
+    "how": {
+      "paras": [
+        "Draw a circle. Scramble each <b>server's name</b> into a spot on the circle and pin it there. Scramble each <b>key</b> the same way, drop it on the circle, and walk clockwise until you bump into a pin. That pin's server owns the key.",
+        "Add a server and it only steals the keys sitting just before its new pin. Remove one and its keys slide to the next pin along. Nothing else moves. Try it."
+      ],
+      "next": "Now let me break it"
+    },
+    "break": {
+      "paras": [
+        "Here's the catch. With only a few pins, the gaps between them are lopsided, so one server ends up hoarding keys. And when you remove a server, its <b>entire</b> load dumps onto a single neighbor.",
+        "The fix is charmingly dumb: give each server <b>many pins</b> instead of one (called virtual nodes). The gaps even out and a dead server's keys spread across everyone. Drag the slider and watch the bars level off."
+      ],
+      "next": "Who came up with this?"
+    },
+    "origin": {
+      "intro": "It's 1997. Six people at MIT's Laboratory for Computer Science, <b>David Karger, Eric Lehman, Tom Leighton, Rina Panigrahy, Matthew Levine and Daniel Lewin</b>, present a paper at the STOC conference: \"Consistent Hashing and Random Trees: Distributed Caching Protocols for Relieving Hot Spots on the World Wide Web\".",
+      "timeline": [
+        {
+          "label": "The problem",
+          "text": "The early web had \"hot spots\": a page gets popular, one server gets crushed. The obvious cure is many caching servers spread across the internet. But the internet has no central manager, and servers come and go constantly, so any scheme that reshuffles everything on each change is dead on arrival."
+        },
+        {
+          "label": "The naive fix",
+          "text": "Hash modulo the number of servers. Fine for a fixed cluster, disastrous the moment the count changes."
+        },
+        {
+          "label": "The insight",
+          "text": "Map servers and keys onto the same circle, so adding or removing a server only touches its neighbors. The paper also shows that clients with slightly different views of which servers exist still mostly agree on where things live."
+        },
+        {
+          "label": "Since then",
+          "text": "Leighton and Lewin turned the idea into a company: Akamai, incorporated in August 1998, built its content delivery network on it. Chord (2001) used the ring for peer-to-peer lookup. Amazon's Dynamo paper (2007) brought it, plus virtual nodes, into databases, and most modern key-value stores followed."
+        }
+      ],
+      "takeaway": "Notice what the trick trades: perfect balance for stability. A plain modulo spreads keys beautifully, but only if nothing ever changes. The ring accepts some lumpiness in exchange for surviving change.",
+      "next": "Where is this used today?"
+    },
+    "uses": {
+      "intro": "Anywhere a set of machines shares out a set of keys and the machines can't be trusted to stay put.",
+      "items": [
+        {
+          "title": "Dynamo-style databases",
+          "text": "Amazon DynamoDB, Apache Cassandra and Riak partition data around a ring with virtual nodes, so a node joining or dying reshuffles only a slice."
+        },
+        {
+          "title": "Distributed caches",
+          "text": "Memcached client libraries pick which cache server holds a key with a ring (the \"ketama\" scheme, written at Last.fm in 2007 after server changes kept wiping their whole cache), so a cache node outage doesn't flush every other node."
+        },
+        {
+          "title": "Content delivery networks",
+          "text": "Akamai uses consistent hashing inside a cluster to decide which edge server should hold a given piece of content."
+        }
+      ],
+      "caveat": "What it can't do: it doesn't balance load by itself (hot keys are still hot), and lookups need the sorted pin list, so a plain ring is slower than a modulo. Newer cousins like jump hash and rendezvous hashing trade away the circle to fix that.",
+      "next": "Want to read more?"
+    },
+    "reads": {
+      "intro": "If the ring got you curious, here's where to go next. Start with the source, then work toward the friendlier explainers.",
+      "items": [
+        {
+          "title": "Karger et al., the original 1997 paper",
+          "url": "https://dl.acm.org/doi/10.1145/258533.258660",
+          "note": "Ten pages. The consistent hashing part is short; the random trees half is a bonus."
+        },
+        {
+          "title": "Tim Roughgarden, Stanford CS168 lecture notes",
+          "url": "https://web.stanford.edu/class/cs168/l/l1.pdf",
+          "note": "The clearest written walk-through, with the balance and monotonicity properties spelled out."
+        },
+        {
+          "title": "Wikipedia, Consistent hashing",
+          "url": "https://en.wikipedia.org/wiki/Consistent_hashing",
+          "note": "History, the O(K/n) keys-moved property, and a list of variants."
+        },
+        {
+          "title": "Akamai, company history",
+          "url": "https://www.akamai.com/company/company-history",
+          "note": "How a theory paper and an MIT business-plan contest turned into a CDN."
+        },
+        {
+          "title": "Tom Leighton, talk on consistent hashing and Akamai (2012)",
+          "url": "https://www.youtube.com/watch?v=apHAqUG3Pi8",
+          "note": "One of the authors telling the origin story in person."
+        }
+      ]
+    }
+  },
+  "verification": {
+    "method": "manual",
+    "sources": [
+      "Karger et al. (1997), STOC",
+      "Akamai company history",
+      "Last.fm ketama announcement (2007)",
+      "Wayfair engineering on Riak"
+    ]
+  }
+}

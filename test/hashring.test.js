@@ -1,7 +1,7 @@
 // Run with: node --test
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const HR = require('./hashring.js');
+const HR = require('../hashring.js');
 
 const keysN = n => Array.from({ length: n }, (_, i) => 'key-' + i);
 
