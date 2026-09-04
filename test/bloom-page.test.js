@@ -20,7 +20,7 @@ test('nav buttons and next buttons switch steps', () => {
   p.click(p.$('nav button[data-go="3"]'));
   assert.equal(p.activeStep(), '3');
   assert.equal(p.$('nav button[data-go="3"]').getAttribute('aria-current'), 'step');
-  p.click(p.$('.step.on .next button'));           // origin -> where it lives
+  p.click(p.$('.step.on .next button'));           // origin -> real-world applications
   assert.equal(p.activeStep(), '4');
 });
 
