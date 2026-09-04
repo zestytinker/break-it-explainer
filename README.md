@@ -14,6 +14,10 @@ Two self-contained pages that teach a concept in six steps (why, how, break it, 
 
 Open either HTML file directly; the logic module is inlined by `build.js`.
 
+## The search box
+
+The landing page takes free text and decides client-side, with no network call: a match on a published concept opens it (typeahead helps); a match on `pipeline/known-concepts.json` (about 150 well-known computing concepts and aliases) gets "real concept, not generated and checked yet"; anything else gets "not supported for now, pick one of these". Live generation from the box is on the roadmap; today every page a reader can open went through the pipeline ahead of time.
+
 ## How a page gets made
 
 ```
@@ -55,6 +59,7 @@ Edit logic in `bloom.js` / `hashring.js`, prose in `content/*.json`, layout in `
 | `test/bloom.test.js`, `test/hashring.test.js` | pure logic: hashing, guarantees (no false negatives, keys never move off a surviving server), formulas, rebuild, validation |
 | `test/bloom-page.test.js`, `test/hashring-page.test.js` | the rendered UI in jsdom: buttons, sliders, verdicts, shared state, navigation, escaping |
 | `test/pipeline.test.js` | draft validation and retry, claim verdict application (cut / soften), source parsing, renderer, end-to-end dry run |
+| `test/gate.test.js`, `test/index-page.test.js` | the search box: matching and ranking, the two "no" messages, keyboard navigation, escaping |
 
 Statistical properties (load evenness, % keys moved) are asserted only in the module tests with large samples, never in UI tests, to avoid flakiness.
 

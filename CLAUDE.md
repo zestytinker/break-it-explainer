@@ -12,6 +12,7 @@ Live: https://zestytinker.github.io/break-it-explainer/ (GitHub Pages, deploys f
 - `concepts.json`: the menu. `published: false` hides a concept from `index.html` but still renders its page.
 - `content/<id>.json`: verified prose. `verification.method` is `manual` (checked by a human) or `llm-judged` (pipeline).
 - `playgrounds/<name>.html`: step 2/3 widget (CSS + script). `bloom.js` / `hashring.js`: their pure logic, unit tested.
+- `gate.js` + `pipeline/known-concepts.json`: client-side search box logic on the landing page (inlined by the renderer). Add aliases to `concepts.json` entries so the box finds them.
 - `pipeline/`: `render.js` (JSON -> page), `run.js` (draft -> gather sources -> judge claims -> apply -> report), `generate.js`, `verify.js`, `sources.js`, `llm.js`.
 - `reports/<id>.md`: per-claim verdicts for human review. `*.dry.md` are offline fixture runs, not real verdicts.
 - `test/`: everything. Fixtures under `test/fixtures/`.

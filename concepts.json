@@ -12,6 +12,10 @@
       "https://cassandra.apache.org/doc/latest/cassandra/architecture/storage-engine.html",
       "https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter",
       "https://www.eecs.harvard.edu/~michaelm/postscripts/im2005b.pdf"
+    ],
+    "aliases": [
+      "bloom filter",
+      "bloom filters"
     ]
   },
   {
@@ -26,6 +30,10 @@
       "https://dl.acm.org/doi/10.1145/258533.258660",
       "https://web.stanford.edu/class/cs168/l/l1.pdf",
       "https://www.akamai.com/company/company-history"
+    ],
+    "aliases": [
+      "hash ring",
+      "consistent hash"
     ]
   },
   {

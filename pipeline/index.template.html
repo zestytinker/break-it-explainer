@@ -6,16 +6,30 @@
 <title>Break-it explainers</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--butter:#FFF3B0;--ink:#2B2340;--ink-soft:#5B5473;--berry:#E0387C;--paper:#FFFBE6;--bulb-on:#FFB800}
+  :root{--butter:#FFF3B0;--ink:#2B2340;--ink-soft:#5B5473;--berry:#E0387C;--paper:#FFFBE6;--bulb-on:#FFB800;--mint:#2FB77C}
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--butter);color:var(--ink);font-family:Fredoka,system-ui,sans-serif;line-height:1.45}
   main{max-width:720px;margin:0 auto;padding:40px 20px 80px}
   h1{font-size:clamp(30px,6vw,44px);margin:0 0 6px;letter-spacing:-.01em}
-  .sub{color:var(--ink-soft);font-size:19px;margin:0 0 30px;max-width:56ch}
-  .cards{display:grid;gap:14px}
+  .sub{color:var(--ink-soft);font-size:19px;margin:0 0 22px;max-width:56ch}
+  .search{position:relative;margin:0 0 10px}
+  .search input{width:100%;font:inherit;font-size:19px;padding:14px 16px;border:2px solid var(--ink);border-radius:16px;background:var(--paper);box-shadow:4px 4px 0 var(--ink)}
+  .search input:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
+  .hint{font-size:14px;color:var(--ink-soft);margin:8px 2px 0}
+  .suggest{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--paper);border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);list-style:none;margin:0;padding:6px;z-index:2;display:none}
+  .suggest.on{display:block}
+  .suggest li{padding:8px 10px;border-radius:9px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .suggest li[aria-selected="true"],.suggest li:hover{background:var(--butter)}
+  .tag{font-size:12px;background:var(--ink);color:var(--butter);border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .msg{display:none;margin:14px 0 6px;padding:14px 16px;border-radius:16px;border:2px solid var(--ink);background:var(--paper);font-size:17px}
+  .msg.on{display:block}
+  .msg.known{border-color:var(--mint);background:#DFF7EA}
+  .msg.unknown{border-color:var(--berry);background:#FFE1EE}
+  .msg b{font-weight:600}
+  .cards{display:grid;gap:14px;margin-top:18px}
   .card{display:block;text-decoration:none;color:inherit;background:var(--paper);border:2px solid var(--ink);border-radius:20px;padding:18px 20px;box-shadow:4px 4px 0 var(--ink);transition:transform .08s,box-shadow .08s}
   .card:hover,.card:focus-visible{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--ink);outline:none}
-  .card h2{margin:0 0 4px;font-size:22px;color:var(--berry)}
+  .card h2{margin:0 0 4px;font-size:22px;color:var(--berry);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .card p{margin:0;color:var(--ink-soft)}
   .how{margin:34px 0 0;padding:16px 20px;border-left:6px solid var(--bulb-on);font-size:17px}
   .how ol{margin:8px 0 0;padding-left:22px}
@@ -27,13 +41,66 @@
 <main>
   <h1>Break-it explainers</h1>
   <p class="sub">Each page teaches one tech idea by letting you build a tiny version of it, then break it. No setup, nothing to install, just click around.</p>
-  <div class="cards">
+
+  <div class="search">
+    <input type="text" data-q placeholder="Type a tech concept, e.g. Bloom filter" aria-label="Search for a concept" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="suggest" aria-autocomplete="list">
+    <ul class="suggest" id="suggest" role="listbox" data-suggest></ul>
+  </div>
+  <p class="hint">Press Enter to open a match. Concepts are checked and generated ahead of time, so anything not listed yet will say so.</p>
+  <div class="msg" data-msg role="status" aria-live="polite"></div>
+
+  <div class="cards" data-cards>
 <!-- cards -->
   </div>
+
   <div class="how">Every explainer follows the same six steps:
     <ol><li>Why the problem exists</li><li>How the trick works, hands on</li><li>Break it, and see the trade-off</li><li>Who invented it and for what</li><li>Where it lives today</li><li>Where to read further</li></ol>
   </div>
   <footer>Code is MIT. Text and visuals are CC BY 4.0. <a href="https://github.com/zestytinker/break-it-explainer">Source on GitHub</a>.</footer>
 </main>
+
+<!-- gate.js -->
+<script>
+(() => {
+  const PUBLISHED = /*published*/[];
+  const KNOWN = /*known*/[];
+  const gate = Gate.create({ published: PUBLISHED, known: KNOWN });
+  const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const input = document.querySelector('[data-q]'), list = document.querySelector('[data-suggest]'), msg = document.querySelector('[data-msg]');
+  let items = [], sel = -1;
+
+  const pageOf = c => `${c.id}-explainer.html`;
+  window.openConcept = window.openConcept || (url => { window.location.href = url; });
+  const go = url => window.openConcept(url);
+  const cardsHtml = () => PUBLISHED.map(c => `<a href="${pageOf(c)}">${esc(c.name)}</a>`).join(', ');
+
+  const render = () => {
+    list.innerHTML = items.map((c, i) => `<li role="option" data-i="${i}" aria-selected="${i === sel}"><span>${esc(c.name)}</span>${c.playground ? '<span class="tag">with playground</span>' : ''}</li>`).join('');
+    const on = items.length > 0 && document.activeElement === input;
+    list.classList.toggle('on', on); input.setAttribute('aria-expanded', String(on));
+  };
+  const show = (kind, html) => { msg.className = 'msg on ' + kind; msg.innerHTML = html; };
+  const hide = () => { msg.className = 'msg'; msg.innerHTML = ''; };
+
+  const submit = q => {
+    const d = gate.decide(q);
+    if (d.kind === 'empty') { hide(); return; }
+    if (d.kind === 'open') { go(pageOf(d.concept)); return; }
+    if (d.kind === 'known') show('known', `<b>${esc(d.name)}</b> is a real concept, but it hasn't been generated and checked yet. It's on the list. For now, try ${cardsHtml()}.`);
+    else show('unknown', `That doesn't look like a tech concept we can explain yet. Not supported for now. Please pick one of these: ${cardsHtml()}.`);
+  };
+
+  input.addEventListener('input', () => { hide(); sel = -1; items = gate.suggest(input.value); render(); });
+  input.addEventListener('focus', () => { items = gate.suggest(input.value); render(); });
+  input.addEventListener('blur', () => setTimeout(() => { list.classList.remove('on'); input.setAttribute('aria-expanded', 'false'); }, 120));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' && items.length) { e.preventDefault(); sel = (sel + 1) % items.length; render(); }
+    else if (e.key === 'ArrowUp' && items.length) { e.preventDefault(); sel = (sel - 1 + items.length) % items.length; render(); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (sel >= 0 && items[sel]) go(pageOf(items[sel])); else submit(input.value); }
+    else if (e.key === 'Escape') { items = []; render(); }
+  });
+  list.addEventListener('mousedown', e => { const li = e.target.closest('li'); if (li) go(pageOf(items[+li.dataset.i])); });
+})();
+</script>
 </body>
 </html>

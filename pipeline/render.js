@@ -118,10 +118,16 @@ function navOnlyScript() {
 }
 
 function renderIndex(concepts) {
-  const cards = concepts.filter(c => c.published).map(c =>
-    `    <a class="card" href="${c.id}-explainer.html"><h2>${esc(c.name)}</h2><p>${esc(c.hook)}</p></a>`).join('\n');
+  const pub = concepts.filter(c => c.published);
+  const cards = pub.map(c =>
+    `    <a class="card" href="${c.id}-explainer.html"><h2>${esc(c.name)}${c.playground ? ' <span class="tag">with playground</span>' : ''}</h2><p>${esc(c.hook)}</p></a>`).join('\n');
+  const published = pub.map(c => ({ id: c.id, name: c.name, aliases: c.aliases || [], playground: !!c.playground }));
+  const known = JSON.parse(read('pipeline/known-concepts.json')).concepts;
   const t = read('pipeline/index.template.html');
-  return t.replace('<!-- cards -->', cards);
+  return t.replace('<!-- cards -->', cards)
+    .replace('<!-- gate.js -->', `<script data-inlined="gate.js">\n${read('gate.js')}</script>`)
+    .replace('/*published*/[]', JSON.stringify(published))
+    .replace('/*known*/[]', JSON.stringify(known));
 }
 
 function renderAll(only) {
