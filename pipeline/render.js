@@ -8,7 +8,7 @@ const ROOT = path.join(__dirname, '..');
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-const STEP_LABELS = ['1. Why', '2. How', '3. Break it', '4. Origin story', '5. Where it applies', '6. Read further'];
+const STEP_LABELS = ['1. Why', '2. How', '3. Break it', '4. Origin story', '5. Real-world applications', '6. Read further'];
 
 function playgroundParts(name) {
   if (!name) return { css: '', script: '' };
