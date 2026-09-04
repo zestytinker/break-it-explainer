@@ -11,7 +11,7 @@ Everything below this line is for maintainers. Readers and reviewers only need t
 
 Interactive explainers for tech concepts. Each one lets you build a tiny version of the idea, then break it.
 
-Two self-contained pages that teach a concept in six steps (why, how, break it, origin, where it lives, read further):
+Two self-contained pages that teach a concept in six steps (why, how, break it, origin, where it applies, read further):
 
 - `bloom-filter-explainer.html` (logic in `bloom.js`)
 - `consistent-hashing-explainer.html` (logic in `hashring.js`)
