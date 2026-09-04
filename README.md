@@ -73,4 +73,4 @@ Prose comes from the pipeline. The playground (steps 2 and 3) is still hand-buil
 
 ## License
 
-Code is [MIT](LICENSE). Text and visuals (the story copy and SVG designs) are [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Code is [MIT](LICENSE).
