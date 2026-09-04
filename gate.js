@@ -16,10 +16,13 @@
     if (q === c) return 100;
     const qt = tokens(q), ct = tokens(c);
     if (qt.join(' ') === ct.join(' ')) return 95;
+    if (q.length < 3) return 0;
     if (c.startsWith(q)) return 80;
-    if (c.includes(q)) return 70;
+    // substring only at a word boundary: "hash" matches "consistent hashing", "llm" must not match "hellman"
+    if (new RegExp('(^| )' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(c)) return 70;
     // every query token is a prefix of some candidate token
-    if (qt.length && qt.every(t => ct.some(x => x.startsWith(t)))) return 60;
+    // every query token (3+ chars) is a prefix of some candidate token; short tokens only match exactly above
+    if (qt.length && qt.every(t => t.length >= 3) && qt.every(t => ct.some(x => x.startsWith(t)))) return 60;
     return 0;
   }
 

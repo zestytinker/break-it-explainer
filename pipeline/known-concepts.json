@@ -1,163 +1,1091 @@
 {
   "_comment": "Well-known computing concepts. Used only to phrase the 'not yet generated' message; not a source of facts. Aliases are lowercase.",
   "concepts": [
-    { "name": "Hash table", "aliases": ["hash map", "hashmap", "hashtable", "dictionary"] },
-    { "name": "Binary search tree", "aliases": ["bst"] },
-    { "name": "B-tree", "aliases": ["btree", "b tree", "b+ tree", "b+tree"] },
-    { "name": "Trie", "aliases": ["prefix tree"] },
-    { "name": "Skip list", "aliases": [] },
-    { "name": "Linked list", "aliases": [] },
-    { "name": "Heap", "aliases": ["priority queue", "binary heap"] },
-    { "name": "Red-black tree", "aliases": ["red black tree"] },
-    { "name": "Merkle tree", "aliases": ["hash tree", "merkle proof"] },
-    { "name": "Cuckoo filter", "aliases": [] },
-    { "name": "Count-min sketch", "aliases": ["count min sketch"] },
-    { "name": "HyperLogLog", "aliases": ["hyper log log"] },
-    { "name": "LRU cache", "aliases": ["lru", "least recently used"] },
-    { "name": "LFU cache", "aliases": ["lfu", "least frequently used"] },
-    { "name": "Rate limiting", "aliases": ["rate limiter", "token bucket", "leaky bucket", "sliding window rate limit"] },
-    { "name": "Circuit breaker", "aliases": [] },
-    { "name": "Backpressure", "aliases": ["back pressure"] },
-    { "name": "Load balancing", "aliases": ["load balancer"] },
-    { "name": "Content delivery network", "aliases": ["cdn"] },
-    { "name": "Reverse proxy", "aliases": [] },
-    { "name": "DNS", "aliases": ["domain name system"] },
-    { "name": "TCP", "aliases": ["tcp handshake", "three-way handshake", "transmission control protocol"] },
-    { "name": "UDP", "aliases": ["user datagram protocol"] },
-    { "name": "TLS", "aliases": ["ssl", "https", "tls handshake"] },
-    { "name": "HTTP/2", "aliases": ["http2"] },
-    { "name": "QUIC", "aliases": ["http/3", "http3"] },
-    { "name": "WebSocket", "aliases": ["websockets"] },
-    { "name": "Congestion control", "aliases": ["tcp congestion control", "slow start"] },
-    { "name": "Public key cryptography", "aliases": ["asymmetric encryption", "rsa", "public-key cryptography"] },
-    { "name": "Diffie-Hellman key exchange", "aliases": ["diffie hellman", "key exchange"] },
-    { "name": "Hash function", "aliases": ["cryptographic hash", "sha-256", "sha256", "md5"] },
-    { "name": "Digital signature", "aliases": ["signatures"] },
-    { "name": "Zero-knowledge proof", "aliases": ["zero knowledge proof", "zkp"] },
-    { "name": "Elliptic curve cryptography", "aliases": ["ecc", "elliptic curve"] },
-    { "name": "JWT", "aliases": ["json web token"] },
-    { "name": "OAuth", "aliases": ["oauth2", "oauth 2.0"] },
-    { "name": "Raft", "aliases": ["raft consensus", "leader election"] },
-    { "name": "Paxos", "aliases": [] },
-    { "name": "Two-phase commit", "aliases": ["2pc", "two phase commit"] },
-    { "name": "CAP theorem", "aliases": ["cap"] },
-    { "name": "Eventual consistency", "aliases": [] },
-    { "name": "Vector clock", "aliases": ["vector clocks", "lamport clock", "logical clock"] },
-    { "name": "CRDT", "aliases": ["conflict-free replicated data type", "crdts"] },
-    { "name": "Gossip protocol", "aliases": ["gossip"] },
-    { "name": "Distributed hash table", "aliases": ["dht", "chord"] },
-    { "name": "Sharding", "aliases": ["database sharding", "partitioning"] },
-    { "name": "Replication", "aliases": ["database replication", "leader follower replication"] },
-    { "name": "Write-ahead log", "aliases": ["wal", "write ahead log"] },
-    { "name": "LSM tree", "aliases": ["log-structured merge tree", "lsm"] },
-    { "name": "SSTable", "aliases": ["sorted string table"] },
-    { "name": "Database index", "aliases": ["index", "b-tree index"] },
-    { "name": "ACID transactions", "aliases": ["acid", "transactions"] },
-    { "name": "MVCC", "aliases": ["multiversion concurrency control"] },
-    { "name": "Optimistic locking", "aliases": ["optimistic concurrency"] },
-    { "name": "Deadlock", "aliases": ["deadlocks"] },
-    { "name": "Mutex", "aliases": ["lock", "semaphore", "mutual exclusion"] },
-    { "name": "Message queue", "aliases": ["queue", "kafka", "pub/sub", "pubsub", "publish subscribe"] },
-    { "name": "Idempotency", "aliases": ["idempotent", "idempotency key"] },
-    { "name": "Exponential backoff", "aliases": ["backoff", "retry with backoff"] },
-    { "name": "Event sourcing", "aliases": [] },
-    { "name": "CQRS", "aliases": [] },
-    { "name": "Saga pattern", "aliases": ["saga"] },
-    { "name": "Service mesh", "aliases": ["sidecar"] },
-    { "name": "Container", "aliases": ["containers", "docker", "containerization"] },
-    { "name": "Kubernetes", "aliases": ["k8s", "container orchestration"] },
-    { "name": "Virtual machine", "aliases": ["vm", "hypervisor", "virtualization"] },
-    { "name": "Garbage collection", "aliases": ["gc", "garbage collector"] },
-    { "name": "Reference counting", "aliases": [] },
-    { "name": "Virtual memory", "aliases": ["paging", "page table", "tlb"] },
-    { "name": "CPU cache", "aliases": ["cache hierarchy", "l1 cache", "cache line"] },
-    { "name": "Branch prediction", "aliases": [] },
-    { "name": "Pipelining", "aliases": ["cpu pipeline", "instruction pipeline"] },
-    { "name": "Process scheduling", "aliases": ["scheduler", "cpu scheduling"] },
-    { "name": "Threads", "aliases": ["multithreading", "thread"] },
-    { "name": "Event loop", "aliases": ["async io", "asynchronous i/o", "epoll"] },
-    { "name": "Coroutines", "aliases": ["async await", "async/await", "goroutines"] },
-    { "name": "Copy-on-write", "aliases": ["cow", "copy on write"] },
-    { "name": "Memory-mapped files", "aliases": ["mmap"] },
-    { "name": "Regular expressions", "aliases": ["regex", "regexp"] },
-    { "name": "Finite state machine", "aliases": ["state machine", "fsm", "automaton"] },
-    { "name": "Compiler", "aliases": ["compilers", "parsing", "parser", "lexer"] },
-    { "name": "Just-in-time compilation", "aliases": ["jit"] },
-    { "name": "Interpreter", "aliases": ["bytecode"] },
-    { "name": "Big O notation", "aliases": ["big o", "time complexity", "asymptotic complexity"] },
-    { "name": "Dynamic programming", "aliases": ["memoization"] },
-    { "name": "Recursion", "aliases": ["recursive"] },
-    { "name": "Binary search", "aliases": [] },
-    { "name": "Quicksort", "aliases": ["quick sort"] },
-    { "name": "Merge sort", "aliases": ["mergesort"] },
-    { "name": "Dijkstra's algorithm", "aliases": ["dijkstra", "shortest path"] },
-    { "name": "Breadth-first search", "aliases": ["bfs", "depth-first search", "dfs", "graph traversal"] },
-    { "name": "Topological sort", "aliases": ["toposort"] },
-    { "name": "PageRank", "aliases": ["page rank"] },
-    { "name": "MapReduce", "aliases": ["map reduce"] },
-    { "name": "Bloom filter", "aliases": ["bloom filters"] },
-    { "name": "Consistent hashing", "aliases": ["hash ring", "rendezvous hashing", "jump hash"] },
-    { "name": "Reed-Solomon codes", "aliases": ["erasure coding", "error correcting codes"] },
-    { "name": "Huffman coding", "aliases": ["huffman"] },
-    { "name": "LZ77", "aliases": ["lz compression", "deflate", "gzip", "compression"] },
-    { "name": "Base64", "aliases": [] },
-    { "name": "UTF-8", "aliases": ["unicode", "utf8"] },
-    { "name": "JSON", "aliases": [] },
-    { "name": "Protocol Buffers", "aliases": ["protobuf", "serialization"] },
-    { "name": "REST", "aliases": ["rest api", "restful"] },
-    { "name": "GraphQL", "aliases": [] },
-    { "name": "gRPC", "aliases": [] },
-    { "name": "Webhooks", "aliases": ["webhook"] },
-    { "name": "CORS", "aliases": ["cross-origin resource sharing", "same-origin policy"] },
-    { "name": "Cookies", "aliases": ["http cookies", "sessions"] },
-    { "name": "Cross-site scripting", "aliases": ["xss"] },
-    { "name": "SQL injection", "aliases": [] },
-    { "name": "CSRF", "aliases": ["cross-site request forgery"] },
-    { "name": "Password hashing", "aliases": ["bcrypt", "salting", "argon2", "salt"] },
-    { "name": "Neural network", "aliases": ["neural networks", "deep learning", "mlp"] },
-    { "name": "Gradient descent", "aliases": ["sgd", "backpropagation", "backprop"] },
-    { "name": "Transformer", "aliases": ["transformers", "attention", "self-attention"] },
-    { "name": "Word embeddings", "aliases": ["embeddings", "word2vec", "vector embeddings"] },
-    { "name": "Vector database", "aliases": ["vector search", "approximate nearest neighbor", "hnsw"] },
-    { "name": "Tokenization", "aliases": ["tokenizer", "byte pair encoding", "bpe"] },
-    { "name": "Overfitting", "aliases": ["regularization"] },
-    { "name": "Convolutional neural network", "aliases": ["cnn", "convolution"] },
-    { "name": "Reinforcement learning", "aliases": ["rl", "q-learning"] },
-    { "name": "Random forest", "aliases": ["decision tree", "decision trees"] },
-    { "name": "K-means clustering", "aliases": ["k-means", "kmeans", "clustering"] },
-    { "name": "Principal component analysis", "aliases": ["pca"] },
-    { "name": "Bayes' theorem", "aliases": ["naive bayes", "bayesian"] },
-    { "name": "A/B testing", "aliases": ["ab testing", "split testing"] },
-    { "name": "Git", "aliases": ["version control", "git branching", "merge conflict"] },
-    { "name": "Continuous integration", "aliases": ["ci/cd", "ci", "continuous deployment"] },
-    { "name": "Blue-green deployment", "aliases": ["canary deployment", "canary release"] },
-    { "name": "Feature flags", "aliases": ["feature toggles"] },
-    { "name": "Observability", "aliases": ["distributed tracing", "tracing", "metrics", "logging"] },
-    { "name": "Blockchain", "aliases": ["proof of work", "proof of stake"] },
-    { "name": "Smart contracts", "aliases": ["smart contract"] },
-    { "name": "Operating system kernel", "aliases": ["kernel", "system call", "syscall"] },
-    { "name": "File system", "aliases": ["filesystem", "inode"] },
-    { "name": "RAID", "aliases": [] },
-    { "name": "SSD", "aliases": ["flash memory", "wear leveling"] },
-    { "name": "Sockets", "aliases": ["socket", "berkeley sockets"] },
-    { "name": "NAT", "aliases": ["network address translation"] },
-    { "name": "BGP", "aliases": ["border gateway protocol", "routing"] },
-    { "name": "IP addressing", "aliases": ["ipv4", "ipv6", "subnet", "cidr"] },
-    { "name": "ARP", "aliases": ["address resolution protocol"] },
-    { "name": "Two's complement", "aliases": ["twos complement", "binary numbers"] },
-    { "name": "Floating point", "aliases": ["ieee 754", "floating-point"] },
-    { "name": "Endianness", "aliases": ["big endian", "little endian"] },
-    { "name": "Bitwise operations", "aliases": ["bitmask", "bit manipulation"] },
-    { "name": "Actor model", "aliases": ["actors", "erlang"] },
-    { "name": "Functional programming", "aliases": ["immutability", "pure functions", "monad", "monads"] },
-    { "name": "Object-oriented programming", "aliases": ["oop", "inheritance", "polymorphism"] },
-    { "name": "Type system", "aliases": ["static typing", "type inference", "generics"] },
-    { "name": "Dependency injection", "aliases": ["inversion of control"] },
-    { "name": "Design patterns", "aliases": ["singleton", "observer pattern", "factory pattern"] },
-    { "name": "Unit testing", "aliases": ["tdd", "test-driven development", "mocking"] },
-    { "name": "Fuzzing", "aliases": ["fuzz testing"] },
-    { "name": "Quantum computing", "aliases": ["qubit", "quantum computer"] },
-    { "name": "Turing machine", "aliases": ["turing complete", "halting problem"] },
-    { "name": "P vs NP", "aliases": ["np-complete", "np complete", "np hard"] }
+    {
+      "name": "Large language model",
+      "aliases": [
+        "llm",
+        "llms",
+        "language model",
+        "gpt",
+        "chatgpt"
+      ]
+    },
+    {
+      "name": "Machine learning",
+      "aliases": [
+        "ml",
+        "supervised learning",
+        "unsupervised learning"
+      ]
+    },
+    {
+      "name": "Artificial intelligence",
+      "aliases": [
+        "ai",
+        "agi"
+      ]
+    },
+    {
+      "name": "Hash table",
+      "aliases": [
+        "hash map",
+        "hashmap",
+        "hashtable",
+        "dictionary"
+      ]
+    },
+    {
+      "name": "Binary search tree",
+      "aliases": [
+        "bst"
+      ]
+    },
+    {
+      "name": "B-tree",
+      "aliases": [
+        "btree",
+        "b tree",
+        "b+ tree",
+        "b+tree"
+      ]
+    },
+    {
+      "name": "Trie",
+      "aliases": [
+        "prefix tree"
+      ]
+    },
+    {
+      "name": "Skip list",
+      "aliases": []
+    },
+    {
+      "name": "Linked list",
+      "aliases": []
+    },
+    {
+      "name": "Heap",
+      "aliases": [
+        "priority queue",
+        "binary heap"
+      ]
+    },
+    {
+      "name": "Red-black tree",
+      "aliases": [
+        "red black tree"
+      ]
+    },
+    {
+      "name": "Merkle tree",
+      "aliases": [
+        "hash tree",
+        "merkle proof"
+      ]
+    },
+    {
+      "name": "Cuckoo filter",
+      "aliases": []
+    },
+    {
+      "name": "Count-min sketch",
+      "aliases": [
+        "count min sketch"
+      ]
+    },
+    {
+      "name": "HyperLogLog",
+      "aliases": [
+        "hyper log log"
+      ]
+    },
+    {
+      "name": "LRU cache",
+      "aliases": [
+        "lru",
+        "least recently used"
+      ]
+    },
+    {
+      "name": "LFU cache",
+      "aliases": [
+        "lfu",
+        "least frequently used"
+      ]
+    },
+    {
+      "name": "Rate limiting",
+      "aliases": [
+        "rate limiter",
+        "token bucket",
+        "leaky bucket",
+        "sliding window rate limit"
+      ]
+    },
+    {
+      "name": "Circuit breaker",
+      "aliases": []
+    },
+    {
+      "name": "Backpressure",
+      "aliases": [
+        "back pressure"
+      ]
+    },
+    {
+      "name": "Load balancing",
+      "aliases": [
+        "load balancer"
+      ]
+    },
+    {
+      "name": "Content delivery network",
+      "aliases": [
+        "cdn"
+      ]
+    },
+    {
+      "name": "Reverse proxy",
+      "aliases": []
+    },
+    {
+      "name": "DNS",
+      "aliases": [
+        "domain name system"
+      ]
+    },
+    {
+      "name": "TCP",
+      "aliases": [
+        "tcp handshake",
+        "three-way handshake",
+        "transmission control protocol"
+      ]
+    },
+    {
+      "name": "UDP",
+      "aliases": [
+        "user datagram protocol"
+      ]
+    },
+    {
+      "name": "TLS",
+      "aliases": [
+        "ssl",
+        "https",
+        "tls handshake"
+      ]
+    },
+    {
+      "name": "HTTP/2",
+      "aliases": [
+        "http2"
+      ]
+    },
+    {
+      "name": "QUIC",
+      "aliases": [
+        "http/3",
+        "http3"
+      ]
+    },
+    {
+      "name": "WebSocket",
+      "aliases": [
+        "websockets"
+      ]
+    },
+    {
+      "name": "Congestion control",
+      "aliases": [
+        "tcp congestion control",
+        "slow start"
+      ]
+    },
+    {
+      "name": "Public key cryptography",
+      "aliases": [
+        "asymmetric encryption",
+        "rsa",
+        "public-key cryptography"
+      ]
+    },
+    {
+      "name": "Diffie-Hellman key exchange",
+      "aliases": [
+        "diffie hellman",
+        "key exchange"
+      ]
+    },
+    {
+      "name": "Hash function",
+      "aliases": [
+        "cryptographic hash",
+        "sha-256",
+        "sha256",
+        "md5"
+      ]
+    },
+    {
+      "name": "Digital signature",
+      "aliases": [
+        "signatures"
+      ]
+    },
+    {
+      "name": "Zero-knowledge proof",
+      "aliases": [
+        "zero knowledge proof",
+        "zkp"
+      ]
+    },
+    {
+      "name": "Elliptic curve cryptography",
+      "aliases": [
+        "ecc",
+        "elliptic curve"
+      ]
+    },
+    {
+      "name": "JWT",
+      "aliases": [
+        "json web token"
+      ]
+    },
+    {
+      "name": "OAuth",
+      "aliases": [
+        "oauth2",
+        "oauth 2.0"
+      ]
+    },
+    {
+      "name": "Raft",
+      "aliases": [
+        "raft consensus",
+        "leader election"
+      ]
+    },
+    {
+      "name": "Paxos",
+      "aliases": []
+    },
+    {
+      "name": "Two-phase commit",
+      "aliases": [
+        "2pc",
+        "two phase commit"
+      ]
+    },
+    {
+      "name": "CAP theorem",
+      "aliases": [
+        "cap"
+      ]
+    },
+    {
+      "name": "Eventual consistency",
+      "aliases": []
+    },
+    {
+      "name": "Vector clock",
+      "aliases": [
+        "vector clocks",
+        "lamport clock",
+        "logical clock"
+      ]
+    },
+    {
+      "name": "CRDT",
+      "aliases": [
+        "conflict-free replicated data type",
+        "crdts"
+      ]
+    },
+    {
+      "name": "Gossip protocol",
+      "aliases": [
+        "gossip"
+      ]
+    },
+    {
+      "name": "Distributed hash table",
+      "aliases": [
+        "dht",
+        "chord"
+      ]
+    },
+    {
+      "name": "Sharding",
+      "aliases": [
+        "database sharding",
+        "partitioning"
+      ]
+    },
+    {
+      "name": "Replication",
+      "aliases": [
+        "database replication",
+        "leader follower replication"
+      ]
+    },
+    {
+      "name": "Write-ahead log",
+      "aliases": [
+        "wal",
+        "write ahead log"
+      ]
+    },
+    {
+      "name": "LSM tree",
+      "aliases": [
+        "log-structured merge tree",
+        "lsm"
+      ]
+    },
+    {
+      "name": "SSTable",
+      "aliases": [
+        "sorted string table"
+      ]
+    },
+    {
+      "name": "Database index",
+      "aliases": [
+        "index",
+        "b-tree index"
+      ]
+    },
+    {
+      "name": "ACID transactions",
+      "aliases": [
+        "acid",
+        "transactions"
+      ]
+    },
+    {
+      "name": "MVCC",
+      "aliases": [
+        "multiversion concurrency control"
+      ]
+    },
+    {
+      "name": "Optimistic locking",
+      "aliases": [
+        "optimistic concurrency"
+      ]
+    },
+    {
+      "name": "Deadlock",
+      "aliases": [
+        "deadlocks"
+      ]
+    },
+    {
+      "name": "Mutex",
+      "aliases": [
+        "lock",
+        "semaphore",
+        "mutual exclusion"
+      ]
+    },
+    {
+      "name": "Message queue",
+      "aliases": [
+        "queue",
+        "kafka",
+        "pub/sub",
+        "pubsub",
+        "publish subscribe"
+      ]
+    },
+    {
+      "name": "Idempotency",
+      "aliases": [
+        "idempotent",
+        "idempotency key"
+      ]
+    },
+    {
+      "name": "Exponential backoff",
+      "aliases": [
+        "backoff",
+        "retry with backoff"
+      ]
+    },
+    {
+      "name": "Event sourcing",
+      "aliases": []
+    },
+    {
+      "name": "CQRS",
+      "aliases": []
+    },
+    {
+      "name": "Saga pattern",
+      "aliases": [
+        "saga"
+      ]
+    },
+    {
+      "name": "Service mesh",
+      "aliases": [
+        "sidecar"
+      ]
+    },
+    {
+      "name": "Container",
+      "aliases": [
+        "containers",
+        "docker",
+        "containerization"
+      ]
+    },
+    {
+      "name": "Kubernetes",
+      "aliases": [
+        "k8s",
+        "container orchestration"
+      ]
+    },
+    {
+      "name": "Virtual machine",
+      "aliases": [
+        "vm",
+        "hypervisor",
+        "virtualization"
+      ]
+    },
+    {
+      "name": "Garbage collection",
+      "aliases": [
+        "gc",
+        "garbage collector"
+      ]
+    },
+    {
+      "name": "Reference counting",
+      "aliases": []
+    },
+    {
+      "name": "Virtual memory",
+      "aliases": [
+        "paging",
+        "page table",
+        "tlb"
+      ]
+    },
+    {
+      "name": "CPU cache",
+      "aliases": [
+        "cache hierarchy",
+        "l1 cache",
+        "cache line"
+      ]
+    },
+    {
+      "name": "Branch prediction",
+      "aliases": []
+    },
+    {
+      "name": "Pipelining",
+      "aliases": [
+        "cpu pipeline",
+        "instruction pipeline"
+      ]
+    },
+    {
+      "name": "Process scheduling",
+      "aliases": [
+        "scheduler",
+        "cpu scheduling"
+      ]
+    },
+    {
+      "name": "Threads",
+      "aliases": [
+        "multithreading",
+        "thread"
+      ]
+    },
+    {
+      "name": "Event loop",
+      "aliases": [
+        "async io",
+        "asynchronous i/o",
+        "epoll"
+      ]
+    },
+    {
+      "name": "Coroutines",
+      "aliases": [
+        "async await",
+        "async/await",
+        "goroutines"
+      ]
+    },
+    {
+      "name": "Copy-on-write",
+      "aliases": [
+        "cow",
+        "copy on write"
+      ]
+    },
+    {
+      "name": "Memory-mapped files",
+      "aliases": [
+        "mmap"
+      ]
+    },
+    {
+      "name": "Regular expressions",
+      "aliases": [
+        "regex",
+        "regexp"
+      ]
+    },
+    {
+      "name": "Finite state machine",
+      "aliases": [
+        "state machine",
+        "fsm",
+        "automaton"
+      ]
+    },
+    {
+      "name": "Compiler",
+      "aliases": [
+        "compilers",
+        "parsing",
+        "parser",
+        "lexer"
+      ]
+    },
+    {
+      "name": "Just-in-time compilation",
+      "aliases": [
+        "jit"
+      ]
+    },
+    {
+      "name": "Interpreter",
+      "aliases": [
+        "bytecode"
+      ]
+    },
+    {
+      "name": "Big O notation",
+      "aliases": [
+        "big o",
+        "time complexity",
+        "asymptotic complexity"
+      ]
+    },
+    {
+      "name": "Dynamic programming",
+      "aliases": [
+        "memoization"
+      ]
+    },
+    {
+      "name": "Recursion",
+      "aliases": [
+        "recursive"
+      ]
+    },
+    {
+      "name": "Binary search",
+      "aliases": []
+    },
+    {
+      "name": "Quicksort",
+      "aliases": [
+        "quick sort"
+      ]
+    },
+    {
+      "name": "Merge sort",
+      "aliases": [
+        "mergesort"
+      ]
+    },
+    {
+      "name": "Dijkstra's algorithm",
+      "aliases": [
+        "dijkstra",
+        "shortest path"
+      ]
+    },
+    {
+      "name": "Breadth-first search",
+      "aliases": [
+        "bfs",
+        "depth-first search",
+        "dfs",
+        "graph traversal"
+      ]
+    },
+    {
+      "name": "Topological sort",
+      "aliases": [
+        "toposort"
+      ]
+    },
+    {
+      "name": "PageRank",
+      "aliases": [
+        "page rank"
+      ]
+    },
+    {
+      "name": "MapReduce",
+      "aliases": [
+        "map reduce"
+      ]
+    },
+    {
+      "name": "Bloom filter",
+      "aliases": [
+        "bloom filters"
+      ]
+    },
+    {
+      "name": "Consistent hashing",
+      "aliases": [
+        "hash ring",
+        "rendezvous hashing",
+        "jump hash"
+      ]
+    },
+    {
+      "name": "Reed-Solomon codes",
+      "aliases": [
+        "erasure coding",
+        "error correcting codes"
+      ]
+    },
+    {
+      "name": "Huffman coding",
+      "aliases": [
+        "huffman"
+      ]
+    },
+    {
+      "name": "LZ77",
+      "aliases": [
+        "lz compression",
+        "deflate",
+        "gzip",
+        "compression"
+      ]
+    },
+    {
+      "name": "Base64",
+      "aliases": []
+    },
+    {
+      "name": "UTF-8",
+      "aliases": [
+        "unicode",
+        "utf8"
+      ]
+    },
+    {
+      "name": "JSON",
+      "aliases": []
+    },
+    {
+      "name": "Protocol Buffers",
+      "aliases": [
+        "protobuf",
+        "serialization"
+      ]
+    },
+    {
+      "name": "REST",
+      "aliases": [
+        "rest api",
+        "restful"
+      ]
+    },
+    {
+      "name": "GraphQL",
+      "aliases": []
+    },
+    {
+      "name": "gRPC",
+      "aliases": []
+    },
+    {
+      "name": "Webhooks",
+      "aliases": [
+        "webhook"
+      ]
+    },
+    {
+      "name": "CORS",
+      "aliases": [
+        "cross-origin resource sharing",
+        "same-origin policy"
+      ]
+    },
+    {
+      "name": "Cookies",
+      "aliases": [
+        "http cookies",
+        "sessions"
+      ]
+    },
+    {
+      "name": "Cross-site scripting",
+      "aliases": [
+        "xss"
+      ]
+    },
+    {
+      "name": "SQL injection",
+      "aliases": []
+    },
+    {
+      "name": "CSRF",
+      "aliases": [
+        "cross-site request forgery"
+      ]
+    },
+    {
+      "name": "Password hashing",
+      "aliases": [
+        "bcrypt",
+        "salting",
+        "argon2",
+        "salt"
+      ]
+    },
+    {
+      "name": "Neural network",
+      "aliases": [
+        "neural networks",
+        "deep learning",
+        "mlp"
+      ]
+    },
+    {
+      "name": "Gradient descent",
+      "aliases": [
+        "sgd",
+        "backpropagation",
+        "backprop"
+      ]
+    },
+    {
+      "name": "Transformer",
+      "aliases": [
+        "transformers",
+        "attention",
+        "self-attention"
+      ]
+    },
+    {
+      "name": "Word embeddings",
+      "aliases": [
+        "embeddings",
+        "word2vec",
+        "vector embeddings"
+      ]
+    },
+    {
+      "name": "Vector database",
+      "aliases": [
+        "vector search",
+        "approximate nearest neighbor",
+        "hnsw"
+      ]
+    },
+    {
+      "name": "Tokenization",
+      "aliases": [
+        "tokenizer",
+        "byte pair encoding",
+        "bpe"
+      ]
+    },
+    {
+      "name": "Overfitting",
+      "aliases": [
+        "regularization"
+      ]
+    },
+    {
+      "name": "Convolutional neural network",
+      "aliases": [
+        "cnn",
+        "convolution"
+      ]
+    },
+    {
+      "name": "Reinforcement learning",
+      "aliases": [
+        "rl",
+        "q-learning"
+      ]
+    },
+    {
+      "name": "Random forest",
+      "aliases": [
+        "decision tree",
+        "decision trees"
+      ]
+    },
+    {
+      "name": "K-means clustering",
+      "aliases": [
+        "k-means",
+        "kmeans",
+        "clustering"
+      ]
+    },
+    {
+      "name": "Principal component analysis",
+      "aliases": [
+        "pca"
+      ]
+    },
+    {
+      "name": "Bayes' theorem",
+      "aliases": [
+        "naive bayes",
+        "bayesian"
+      ]
+    },
+    {
+      "name": "A/B testing",
+      "aliases": [
+        "ab testing",
+        "split testing"
+      ]
+    },
+    {
+      "name": "Git",
+      "aliases": [
+        "version control",
+        "git branching",
+        "merge conflict"
+      ]
+    },
+    {
+      "name": "Continuous integration",
+      "aliases": [
+        "ci/cd",
+        "ci",
+        "continuous deployment"
+      ]
+    },
+    {
+      "name": "Blue-green deployment",
+      "aliases": [
+        "canary deployment",
+        "canary release"
+      ]
+    },
+    {
+      "name": "Feature flags",
+      "aliases": [
+        "feature toggles"
+      ]
+    },
+    {
+      "name": "Observability",
+      "aliases": [
+        "distributed tracing",
+        "tracing",
+        "metrics",
+        "logging"
+      ]
+    },
+    {
+      "name": "Blockchain",
+      "aliases": [
+        "proof of work",
+        "proof of stake"
+      ]
+    },
+    {
+      "name": "Smart contracts",
+      "aliases": [
+        "smart contract"
+      ]
+    },
+    {
+      "name": "Operating system kernel",
+      "aliases": [
+        "kernel",
+        "system call",
+        "syscall"
+      ]
+    },
+    {
+      "name": "File system",
+      "aliases": [
+        "filesystem",
+        "inode"
+      ]
+    },
+    {
+      "name": "RAID",
+      "aliases": []
+    },
+    {
+      "name": "SSD",
+      "aliases": [
+        "flash memory",
+        "wear leveling"
+      ]
+    },
+    {
+      "name": "Sockets",
+      "aliases": [
+        "socket",
+        "berkeley sockets"
+      ]
+    },
+    {
+      "name": "NAT",
+      "aliases": [
+        "network address translation"
+      ]
+    },
+    {
+      "name": "BGP",
+      "aliases": [
+        "border gateway protocol",
+        "routing"
+      ]
+    },
+    {
+      "name": "IP addressing",
+      "aliases": [
+        "ipv4",
+        "ipv6",
+        "subnet",
+        "cidr"
+      ]
+    },
+    {
+      "name": "ARP",
+      "aliases": [
+        "address resolution protocol"
+      ]
+    },
+    {
+      "name": "Two's complement",
+      "aliases": [
+        "twos complement",
+        "binary numbers"
+      ]
+    },
+    {
+      "name": "Floating point",
+      "aliases": [
+        "ieee 754",
+        "floating-point"
+      ]
+    },
+    {
+      "name": "Endianness",
+      "aliases": [
+        "big endian",
+        "little endian"
+      ]
+    },
+    {
+      "name": "Bitwise operations",
+      "aliases": [
+        "bitmask",
+        "bit manipulation"
+      ]
+    },
+    {
+      "name": "Actor model",
+      "aliases": [
+        "actors",
+        "erlang"
+      ]
+    },
+    {
+      "name": "Functional programming",
+      "aliases": [
+        "immutability",
+        "pure functions",
+        "monad",
+        "monads"
+      ]
+    },
+    {
+      "name": "Object-oriented programming",
+      "aliases": [
+        "oop",
+        "inheritance",
+        "polymorphism"
+      ]
+    },
+    {
+      "name": "Type system",
+      "aliases": [
+        "static typing",
+        "type inference",
+        "generics"
+      ]
+    },
+    {
+      "name": "Dependency injection",
+      "aliases": [
+        "inversion of control"
+      ]
+    },
+    {
+      "name": "Design patterns",
+      "aliases": [
+        "singleton",
+        "observer pattern",
+        "factory pattern"
+      ]
+    },
+    {
+      "name": "Unit testing",
+      "aliases": [
+        "tdd",
+        "test-driven development",
+        "mocking"
+      ]
+    },
+    {
+      "name": "Fuzzing",
+      "aliases": [
+        "fuzz testing"
+      ]
+    },
+    {
+      "name": "Quantum computing",
+      "aliases": [
+        "qubit",
+        "quantum computer"
+      ]
+    },
+    {
+      "name": "Turing machine",
+      "aliases": [
+        "turing complete",
+        "halting problem"
+      ]
+    },
+    {
+      "name": "P vs NP",
+      "aliases": [
+        "np-complete",
+        "np complete",
+        "np hard"
+      ]
+    }
   ]
 }
