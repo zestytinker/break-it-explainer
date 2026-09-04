@@ -40,6 +40,7 @@ function renderPage(c) {
 </head>
 <body>
 <main>
+  <a class="back" href="index.html">&larr; All explainers</a>
   <h1>${esc(c.title)}</h1>
   <p class="sub">${esc(c.subtitle)}</p>
 
@@ -91,7 +92,7 @@ ${next(5, s.uses.next)}
     <div class="reads">
 ${s.reads.items.map(r => `      <a class="read" href="${esc(r.url)}" target="_blank" rel="noopener"><h3>${esc(r.title)}</h3><p>${esc(r.note)}</p></a>`).join('\n')}
     </div>
-${next(1, 'Back to the playground', false)}
+    <div class="next"><a class="btn" href="index.html">Back to all explainers</a><button class="btn" data-go="1">Back to the playground</button></div>
   </section>
 
 ${verified}  <footer>Built as a prototype for explaining tech concepts to curious generalists.</footer>

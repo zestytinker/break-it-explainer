@@ -120,3 +120,10 @@ test('user-typed words are escaped before being rendered', () => {
   assert.equal(p.$$('img', pg).length, 0, 'no element injected');
   assert.match(p.$('.chip', pg).textContent, /<img src=x/);
 });
+
+test('every explainer links back to the index at the top and at the end', () => {
+  const p = page();
+  assert.equal(p.$('a.back').getAttribute('href'), 'index.html');
+  const last = p.$('.step[data-step="5"] a.btn');
+  assert.equal(last.getAttribute('href'), 'index.html');
+});

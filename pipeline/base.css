@@ -7,6 +7,10 @@
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--butter);color:var(--ink);font-family:Fredoka,system-ui,sans-serif;line-height:1.45}
   main{max-width:720px;margin:0 auto;padding:32px 20px 80px}
+  .back{display:inline-block;margin:0 0 14px;font-weight:600;color:var(--ink-soft);text-decoration:none;border-bottom:2px solid transparent}
+  .back:hover,.back:focus-visible{color:var(--ink);border-bottom-color:var(--ink);outline:none}
+  a.btn{text-decoration:none;display:inline-block}
+  .next{gap:10px;flex-wrap:wrap}
   h1{font-size:clamp(28px,5vw,40px);font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
   .sub{color:var(--ink-soft);margin:0 0 28px;font-size:18px}
   nav{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}

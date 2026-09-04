@@ -14,6 +14,10 @@
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--butter);color:var(--ink);font-family:Fredoka,system-ui,sans-serif;line-height:1.45}
   main{max-width:720px;margin:0 auto;padding:32px 20px 80px}
+  .back{display:inline-block;margin:0 0 14px;font-weight:600;color:var(--ink-soft);text-decoration:none;border-bottom:2px solid transparent}
+  .back:hover,.back:focus-visible{color:var(--ink);border-bottom-color:var(--ink);outline:none}
+  a.btn{text-decoration:none;display:inline-block}
+  .next{gap:10px;flex-wrap:wrap}
   h1{font-size:clamp(28px,5vw,40px);font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
   .sub{color:var(--ink-soft);margin:0 0 28px;font-size:18px}
   nav{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
@@ -73,6 +77,7 @@
 </head>
 <body>
 <main>
+  <a class="back" href="index.html">&larr; All explainers</a>
   <h1>The bouncer with a bad memory</h1>
   <p class="sub">A hands-on tour of Bloom filters, in four short steps.</p>
 
@@ -144,7 +149,7 @@
       <a class="read" href="https://www.jasondavies.com/bloomfilter/" target="_blank" rel="noopener"><h3>Jason Davies, interactive Bloom filter</h3><p>The classic visualization. Same idea as this page, with real hash math on show.</p></a>
       <a class="read" href="https://yourbasic.org/algorithms/bloom-filter/" target="_blank" rel="noopener"><h3>YourBasic, Bloom filters explained</h3><p>A short, plain-language write-up with a small code example in Go.</p></a>
     </div>
-    <div class="next"><button class="btn" data-go="1">Back to the playground</button></div>
+    <div class="next"><a class="btn" href="index.html">Back to all explainers</a><button class="btn" data-go="1">Back to the playground</button></div>
   </section>
 
   <p class="verified">Facts checked against: Bloom (1970), Communications of the ACM; Chromium source and code review; Apache Cassandra docs; RocksDB wiki; Maggs and Sitaraman (2015), Akamai.</p>
