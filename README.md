@@ -2,7 +2,11 @@
 
 [![test](https://github.com/zestytinker/break-it-explainer/actions/workflows/test.yml/badge.svg)](https://github.com/zestytinker/break-it-explainer/actions)
 
-Live site: https://zestytinker.github.io/break-it-explainer/
+**Try it now, nothing to install: https://zestytinker.github.io/break-it-explainer/**
+
+Open the link, pick a concept (or type one in the box), and go to step 3, "Break it". That step is the whole idea: you cause the failure yourself and a live number explains it. The search box has three example chips so you can see it open a page, decline a real-but-ungenerated concept, and decline a non-concept.
+
+Everything below this line is for maintainers. Readers and reviewers only need the link.
 
 
 Interactive explainers for tech concepts. Each one lets you build a tiny version of the idea, then break it.

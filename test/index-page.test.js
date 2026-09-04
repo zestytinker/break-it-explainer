@@ -88,3 +88,16 @@ test('typed text is escaped in messages', () => {
   p.press('Enter');
   assert.equal(p.$$('[data-msg] img').length, 0);
 });
+
+test('example chips fill the box and submit: one opens, one queues, one is unsupported', () => {
+  const p = page();
+  const chips = p.$$('[data-try]');
+  assert.deepEqual(chips.map(c => c.dataset.try), ['Bloom filter', 'Raft', "my cat's diet"]);
+  p.click(chips[0]);
+  assert.deepEqual(p.nav, ['bloom-filter-explainer.html']);
+  p.click(chips[1]);
+  assert.ok(p.$('[data-msg]').classList.contains('known'));
+  assert.equal(p.input.value, 'Raft');
+  p.click(chips[2]);
+  assert.ok(p.$('[data-msg]').classList.contains('unknown'));
+});

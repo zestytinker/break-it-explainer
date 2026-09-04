@@ -21,6 +21,9 @@
   .suggest li{padding:8px 10px;border-radius:9px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px}
   .suggest li[aria-selected="true"],.suggest li:hover{background:var(--butter)}
   .tag{font-size:12px;background:var(--ink);color:var(--butter);border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .chips{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 2px 0;font-size:14px;color:var(--ink-soft)}
+  .chip{font:inherit;font-size:14px;padding:4px 12px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);color:var(--ink);cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
+  .chip:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
   .msg{display:none;margin:14px 0 6px;padding:14px 16px;border-radius:16px;border:2px solid var(--ink);background:var(--paper);font-size:17px}
   .msg.on{display:block}
   .msg.known{border-color:var(--mint);background:#DFF7EA}
@@ -47,6 +50,12 @@
     <ul class="suggest" id="suggest" role="listbox" data-suggest></ul>
   </div>
   <p class="hint">Press Enter to open a match. Concepts are checked and generated ahead of time, so anything not listed yet will say so.</p>
+  <div class="chips" data-chips>
+    <span class="chips-label">Try:</span>
+    <button type="button" class="chip" data-try="Bloom filter">Bloom filter</button>
+    <button type="button" class="chip" data-try="Raft">Raft</button>
+    <button type="button" class="chip" data-try="my cat's diet">my cat's diet</button>
+  </div>
   <div class="msg" data-msg role="status" aria-live="polite"></div>
 
   <div class="cards" data-cards>
@@ -167,6 +176,7 @@
     else if (e.key === 'Enter') { e.preventDefault(); if (sel >= 0 && items[sel]) go(pageOf(items[sel])); else submit(input.value); }
     else if (e.key === 'Escape') { items = []; render(); }
   });
+  document.querySelectorAll('[data-try]').forEach(b => b.addEventListener('click', () => { input.value = b.dataset.try; items = []; render(); submit(input.value); }));
   list.addEventListener('mousedown', e => { const li = e.target.closest('li'); if (li) go(pageOf(items[+li.dataset.i])); });
 })();
 </script>
